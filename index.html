@@ -147,14 +147,6 @@
         .close-hud-btn:hover {
             background: #475569;
         }
-        .sun, .cloud, .palm, .telescope, .lab, .tool, .moon, .orb,
-        .paint, .canvas, .brush, .sparkles, .heart, .chart, .presentation,
-        .rocket, .folders, .boat, .shell, .specimen,
-        .mascot-prop, .mascot-tools, .mascot-science, .mascot-art,
-        .mascot-social, .mascot-business, .mascot-admin,
-        .language-stars::after {
-            display: none !important;
-        }
         @keyframes islandFloat {
             0% { transform: translateY(0px); }
             100% { transform: translateY(-12px); }
@@ -181,9 +173,9 @@
 .character{position:absolute;font-size:5rem;bottom:30px;animation:bob 2s ease-in-out infinite alternate;filter:drop-shadow(0 8px 8px rgba(0,0,0,.35))}
 .workshop{position:absolute;font-size:6rem;left:22px;bottom:38px;animation:pulse 3s infinite}.tool{position:absolute;right:55px;top:45px;font-size:3rem;animation:spin 3s infinite}
 .moon{position:absolute;right:45px;top:30px;font-size:3rem;animation:float 3s infinite alternate}
-.orb{position:absolute;border:2px solid #7dd3fc;border-radius:50%;animation:float 3s infinite alternate}.orb-a{width:90px;height:90px;left:35px;top:35px}.orb-b{width:45px;height:45px;right:50px;top:40px}.orb-c{width:60px;height:60px;left:58%;top:60px}.lab{position:absolute;font-size:5rem;left:38px;bottom:32px;animation:float 2.5s infinite alternate}.scientist{right:70px}.data-stream{position:absolute;right:15px;top:22px;font:700 12px monospace;color:#7dd3fc;opacity:.8}.paint{position:absolute;border-radius:50%;animation:paint 3s infinite alternate}.paint-a{width:100px;height:65px;background:#fb7185;left:25px;top:30px}.paint-b{width:80px;height:90px;background:#fbbf24;right:20px;top:50px}.canvas{position:absolute;font-size:5rem;left:55px;bottom:35px}.artist{right:60px}.brush{position:absolute;right:40px;top:25px;font-size:3.5rem;animation:brush 2s infinite alternate}.sparkles{position:absolute;left:50%;top:25px;font-size:2.3rem;transform:translateX(-50%);animation:float 2.25s infinite alternate}.heart{position:absolute;top:25px;font-size:4rem;color:#fb7185;animation:heart 1.5s infinite}.person-a{left:65px}.person-b{right:65px}.speech{position:absolute;right:32px;top:30px;font-size:3rem;animation:float 2.5s infinite alternate}.chart{position:absolute;left:25px;bottom:55px;display:flex;gap:7px;align-items:flex-end;height:100px}.chart span{width:20px;background:#fbbf24;border-radius:5px 5px 0 0;animation:grow 1.8s infinite alternate}.chart span:nth-child(2){height:65px;animation-delay:.2s}.chart span:nth-child(3){height:87px;animation-delay:.4s}.presentation{position:absolute;top:25px;left:50%;font-size:4rem;animation:float 2s infinite alternate}.leader{right:55px}.rocket{position:absolute;right:25px;top:30px;font-size:3rem;animation:rocket 2s infinite alternate}.folders{position:absolute;top:28px;font-size:2.4rem;animation:float 2.4s infinite alternate}.computer{position:absolute;left:35px;bottom:35px;font-size:5rem}.clerk{right:65px;bottom:35px}.numbers{position:absolute;left:42%;top:22px;font-size:2.5rem}.island-letter{font-size:3.2rem;font-weight:900;margin-top:-5px}.island-node[data-type="R"] .island-letter{color:#f87171}.island-node[data-type="I"] .island-letter{color:#38bdf8}.island-node[data-type="A"] .island-letter{color:#f472b6}.island-node[data-type="S"] .island-letter{color:#4ade80}.island-node[data-type="E"] .island-letter{color:#fbbf24}.island-node[data-type="C"] .island-letter{color:#a78bfa}.island-title{font-size:1.45rem;font-weight:800;margin:.1rem 0 .25rem}.island-tagline{font-size:.88rem;opacity:.65;margin-bottom:1.2rem}
-.hud-modal{position:relative;max-width:700px;padding:1.5rem 2rem 2rem}.modal-x{position:absolute;right:20px;top:15px;background:none;border:0;color:#fff;font-size:2rem;cursor:pointer;z-index:5}.modal-close{margin-top:1.5rem}
-@keyframes bob{to{transform:translateY(-10px)}}@keyframes pulse{50%{transform:scale(1.05)}}@keyframes spin{50%{transform:translateY(-10px) rotate(15deg)}}@keyframes float{to{transform:translateY(-10px)}}@keyframes paint{to{transform:translateY(-8px) scale(1.02)}}@keyframes brush{to{transform:rotate(12deg)}}@keyframes heart{50%{transform:scale(1.08)}}@keyframes grow{to{transform:scaleY(1.1)}}@keyframes rocket{to{transform:translateY(-8px) rotate(-10deg)}}@media(max-width:900px){.universe-map{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.universe-map{grid-template-columns:1fr;width:88%}}
+.orb{position:absolute;border:2px solid #7dd3fc;border-radius:50%;animation:float 3s infinite alternate}.orb-a{width:90px;height:90px;left:35px;top:35px}.orb-b{width:45px;height:45px;right:50px;t[...]
+.hud-modal{position:relative;max-width:700px;padding:1.5rem 2rem 2rem}.modal-x{position:absolute;right:20px;top:15px;background:none;border:0;color:#fff;font-size:2rem;cursor:pointer;z-index:5}.m[...]
+@keyframes bob{to{transform:translateY(-10px)}}@keyframes pulse{50%{transform:scale(1.05)}}@keyframes spin{50%{transform:translateY(-10px) rotate(15deg)}}@keyframes float{to{transform:translateY([...]
 
 
 /* ===== WELCOME / START SCREEN ===== */
