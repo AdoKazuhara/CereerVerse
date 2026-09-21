@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareerVerse 3D - Forensic Accountant: 3D Ledger Inspector</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; overflow: hidden; height: 100vh; }
+    
+    #canvas-container { width: 100vw; height: 100vh; display: block; }
+
+    /* UI Overlay Header */
+    #ui-header {
+      position: absolute; top: 20px; left: 20px; right: 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      pointer-events: none;
+    }
+    .badge {
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+      border: 1px solid #38bdf8; padding: 8px 16px; border-radius: 20px;
+      font-size: 0.85rem; font-weight: 600; color: #38bdf8; letter-spacing: 0.5px;
+    }
+    .hud-card {
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+      border: 1px solid #0284c7; border-radius: 12px; padding: 12px 20px;
+      color: #fff; pointer-events: auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+      min-width: 220px;
+    }
+
+    /* Inspector Panel */
+    #audit-panel {
+      position: absolute; bottom: 30px; left: 20px; width: 350px;
+      background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(12px);
+      border: 1px solid #0284c7; border-radius: 12px; padding: 16px;
+      color: #fff; pointer-events: auto;
+    }
+
+    .entry-card {
+      background: rgba(30, 41, 59, 0.7); border: 1px solid #334155;
+      border-radius: 8px; padding: 12px; margin-top: 10px; font-size: 0.85rem;
+    }
+    .entry-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .entry-val { font-weight: 700; color: #38bdf8; }
+
+    .audit-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .audit-btn {
+      flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155;
+      background: #1e293b; color: #f8fafc; font-weight: 700; cursor: pointer;
+      font-size: 0.8rem; text-align: center;
+    }
+    .audit-btn.flag { background: #991b1b; border-color: #ef4444; color: #fca5a5; }
+    .audit-btn.approve { background: #166534; border-color: #22c55e; color: #bbf7d0; }
+
+    /* Controls */
+    #ui-bottom-right {
+      position: absolute; bottom: 30px; right: 20px;
+      display: flex; gap: 12px; pointer-events: auto;
+    }
+    .btn {
+      background: #0284c7; color: #fff; border: none; padding: 12px 24px;
+      border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer;
+      transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    }
+    .btn:hover { background: #0369a1; transform: translateY(-2px); }
+    .btn-secondary { background: #334155; box-shadow: none; }
+    .btn-secondary:hover { background: #1e293b; }
+    .btn-success { background: #16a34a; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); }
+    .btn-success:hover { background: #15803d; }
+
+    /* Modal Popup */
+    #result-modal {
+      display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px);
+      justify-content: center; align-items: center; z-index: 10;
+    }
+    .modal-content {
+      background: #1e293b; border: 1px solid #38bdf8; border-radius: 16px;
+      padding: 32px; width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    }
+    .stars { font-size: 2rem; color: #f59e0b; margin: 12px 0; }
+    .score-tag { font-size: 1.1rem; color: #bae6fd; margin-bottom: 20px; }
+    .riasec-box {
+      background: #0f172a; padding: 16px; border-radius: 8px; border-left: 4px solid #38bdf8;
+      text-align: left; margin-bottom: 24px; font-size: 0.9rem; color: #e0f2fe;
+    }
+  </style>
+
+  <!-- Import Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <!-- UI Overlay -->
+  <div id="ui-header">
+    <div>
+      <div class="badge">CONVENTIONAL ISLAND</div>
+      <h2 style="margin-top: 4px; font-size: 1.4rem;">Forensic Accountant: 3D Ledger Inspector</h2>
+    </div>
+    <div class="hud-card">
+      <div style="font-size: 0.75rem; color: #7dd3fc; text-transform: uppercase;">Audit Flagged Count</div>
+      <div style="font-size: 1.25rem; font-weight: 700; color: #38bdf8;" id="flag-count">0 / 1 Fraudulent Entry</div>
+    </div>
+  </div>
+
+  <!-- Ledger Inspector Panel -->
+  <div id="audit-panel">
+    <div style="font-size: 0.75rem; color: #38bdf8; text-transform: uppercase; font-weight: 700;">General Ledger Audit Queue</div>
+    
+    <div class="entry-card">
+      <div class="entry-row"><span>TX ID:</span><span class="entry-val" id="tx-id">#TX-9042</span></div>
+      <div class="entry-row"><span>Entity:</span><span id="tx-entity" style="color: #fff;">Nexus Consulting LLC</span></div>
+      <div class="entry-row"><span>Debit ($):</span><span class="entry-val" id="tx-debit">$500,000.00</span></div>
+      <div class="entry-row"><span>Credit ($):</span><span class="entry-val" id="tx-credit">$500,000.00</span></div>
+      <div class="entry-row"><span>Variance:</span><span id="tx-var" style="color: #4ade80;">Balanced ($0.00)</span></div>
+    </div>
+
+    <div class="audit-actions">
+      <button class="audit-btn flag" onclick="auditAction('flag')">FLAG FRAUD</button>
+      <button class="audit-btn approve" onclick="auditAction('approve')">APPROVE ENTRY</button>
+    </div>
+  </div>
+
+  <div id="ui-bottom-right">
+    <button class="btn btn-secondary" onclick="nextBlock()">Cycle Block</button>
+    <button class="btn btn-success" onclick="submitAudit()">Submit Audit Report</button>
+  </div>
+
+  <!-- Results Modal -->
+  <div id="result-modal">
+    <div class="modal-content">
+      <h2 id="modal-title" style="color: #38bdf8;">Audit Report Verified!</h2>
+      <div class="stars" id="star-rating">★ ★ ★ ★ ★</div>
+      <div class="score-tag" id="score-text">Compliance Precision: 100%</div>
+      <div class="riasec-box">
+        <strong>RIASEC Score Update:</strong><br>
+        <span id="riasec-desc">+30 Conventional (C) Points added. Rigorous precision, meticulous anomaly detection, and exact compliance audit completed!</span>
+      </div>
+      <button class="btn" style="width: 100%;" onclick="closeModal()">Continue Exploring</button>
+    </div>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <script>
+    // Mock Data Blocks
+    const ledgerData = [
+      { id: "#TX-9042", entity: "Nexus Consulting LLC", debit: 500000, credit: 500000, fraud: false },
+      { id: "#TX-9043", entity: "Offshore Holdings Corp", debit: 1250000, credit: 1100000, fraud: true }, // Fraudulent variance
+      { id: "#TX-9044", entity: "Apex Tech Supplies", debit: 45000, credit: 45000, fraud: false }
+    ];
+
+    let currentIndex = 0;
+    let flaggedStatus = [false, false, false];
+
+    // --- THREE.JS SCENE SETUP ---
+    let scene, camera, renderer;
+    let ledgerBlocks = [];
+
+    function init() {
+      const container = document.getElementById('canvas-container');
+
+      // 1. Scene & Camera
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0f172a);
+
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 2, 7);
+
+      // 2. Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      container.appendChild(renderer.domElement);
+
+      // 3. Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
+      dirLight.position.set(5, 8, 5);
+      scene.add(dirLight);
+
+      // 4. Build 3D Ledger Data Blocks
+      createLedgerScene();
+
+      // Event Listeners
+      window.addEventListener('resize', onWindowResize);
+
+      updateInspector();
+      animate();
+    }
+
+    // --- 3D SCENE BUILD ---
+    function createLedgerScene() {
+      const positions = [-2.2, 0, 2.2];
+
+      for (let i = 0; i < 3; i++) {
+        const blockGeo = new THREE.BoxGeometry(1.6, 2.2, 0.4);
+        const blockMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+        const block = new THREE.Mesh(blockGeo, blockMat);
+        block.position.set(positions[i], 0, 0);
+
+        // Border Glow Wireframe
+        const wireGeo = new THREE.EdgesGeometry(blockGeo);
+        const wireMat = new THREE.LineBasicMaterial({ color: 0x0284c7 });
+        const wireframe = new THREE.LineSegments(wireGeo, wireMat);
+        block.add(wireframe);
+
+        scene.add(block);
+        ledgerBlocks.push(block);
+      }
+    }
+
+    // --- INSPECTOR MECHANICS ---
+    function updateInspector() {
+      const data = ledgerData[currentIndex];
+      document.getElementById('tx-id').innerText = data.id;
+      document.getElementById('tx-entity').innerText = data.entity;
+      document.getElementById('tx-debit').innerText = `$${data.debit.toLocaleString()}.00`;
+      document.getElementById('tx-credit').innerText = `$${data.credit.toLocaleString()}.00`;
+
+      const diff = data.debit - data.credit;
+      const varEl = document.getElementById('tx-var');
+
+      if (diff === 0) {
+        varEl.innerText = "Balanced ($0.00)";
+        varEl.style.color = "#4ade80";
+      } else {
+        varEl.innerText = `UNBALANCED ($${diff.toLocaleString()}.00)`;
+        varEl.style.color = "#f43f5e";
+      }
+
+      // Highlight selected 3D Block
+      ledgerBlocks.forEach((b, idx) => {
+        if (idx === currentIndex) {
+          b.position.z = 0.5;
+          b.material.color.setHex(flaggedStatus[idx] ? 0x991b1b : 0x0284c7);
+        } else {
+          b.position.z = 0;
+          b.material.color.setHex(flaggedStatus[idx] ? 0x7f1d1d : 0x1e293b);
+        }
+      });
+
+      // Update HUD count
+      const totalFlagged = flaggedStatus.filter(f => f).length;
+      document.getElementById('flag-count').innerText = `${totalFlagged} / 1 Fraudulent Entry`;
+    }
+
+    function auditAction(type) {
+      if (type === 'flag') {
+        flaggedStatus[currentIndex] = true;
+      } else {
+        flaggedStatus[currentIndex] = false;
+      }
+      updateInspector();
+    }
+
+    function nextBlock() {
+      currentIndex = (currentIndex + 1) % ledgerData.length;
+      updateInspector();
+    }
+
+    function submitAudit() {
+      // Check if correctly flagged entry #1 (index 1 is fraud)
+      const correct = flaggedStatus[1] === true && flaggedStatus[0] === false && flaggedStatus[2] === false;
+      showResults(correct);
+    }
+
+    // --- ANIMATION LOOP ---
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Pulse high variance blocks
+      if (ledgerBlocks[1]) {
+        ledgerBlocks[1].rotation.y = Math.sin(Date.now() * 0.003) * 0.15;
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // --- RESULTS EVALUATION ---
+    function showResults(success) {
+      const modal = document.getElementById('result-modal');
+      const title = document.getElementById('modal-title');
+      const stars = document.getElementById('star-rating');
+      const scoreText = document.getElementById('score-text');
+      const riasecDesc = document.getElementById('riasec-desc');
+
+      if (success) {
+        title.innerText = "Audit Report Verified!";
+        title.style.color = "#38bdf8";
+        stars.innerText = "★ ★ ★ ★ ★";
+        scoreText.innerText = "Compliance Precision: 100%";
+        riasecDesc.innerHTML = "<strong>+30 Conventional (C) Points</strong> added to your RIASEC Profile. Perfect detection of unbalanced credit variances and forensic detail rigor!";
+      } else {
+        title.innerText = "Compliance Audit Failed!";
+        title.style.color = "#f87171";
+        stars.innerText = "★ ★ ☆ ☆ ☆";
+        scoreText.innerText = "Compliance Precision: 33%";
+        riasecDesc.innerHTML = "<strong>+10 Conventional (C) Points</strong> added. Look for entries where Debits do not match Credits (Unbalanced Variance).";
+      }
+
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById('result-modal').style.display = "none";
+      flaggedStatus = [false, false, false];
+      currentIndex = 0;
+      updateInspector();
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

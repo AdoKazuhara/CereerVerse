@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareerVerse 3D - Logistics Coordinator: Route Network</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; overflow: hidden; height: 100vh; }
+    
+    #canvas-container { width: 100vw; height: 100vh; display: block; }
+
+    /* UI Overlay Header */
+    #ui-header {
+      position: absolute; top: 20px; left: 20px; right: 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      pointer-events: none;
+    }
+    .badge {
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+      border: 1px solid #38bdf8; padding: 8px 16px; border-radius: 20px;
+      font-size: 0.85rem; font-weight: 600; color: #38bdf8; letter-spacing: 0.5px;
+    }
+    .hud-card {
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+      border: 1px solid #0284c7; border-radius: 12px; padding: 12px 20px;
+      color: #fff; pointer-events: auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+      min-width: 220px;
+    }
+
+    /* Logistics Panel */
+    #route-panel {
+      position: absolute; bottom: 30px; left: 20px; width: 350px;
+      background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(12px);
+      border: 1px solid #0284c7; border-radius: 12px; padding: 16px;
+      color: #fff; pointer-events: auto;
+    }
+
+    .select-group { margin: 12px 0; }
+    .select-group label { display: block; font-size: 0.85rem; color: #7dd3fc; margin-bottom: 6px; }
+    .select-group select {
+      width: 100%; padding: 8px 12px; background: #1e293b; border: 1px solid #0284c7;
+      border-radius: 6px; color: #fff; font-size: 0.9rem; cursor: pointer;
+    }
+
+    .metric-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0;
+    }
+    .metric-item {
+      background: rgba(30, 41, 59, 0.6); padding: 8px; border-radius: 6px;
+      border: 1px solid #334155; text-align: center;
+    }
+    .metric-val { font-size: 1.1rem; font-weight: 700; color: #38bdf8; }
+    .metric-lbl { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
+
+    /* Controls */
+    #ui-bottom-right {
+      position: absolute; bottom: 30px; right: 20px;
+      display: flex; gap: 12px; pointer-events: auto;
+    }
+    .btn {
+      background: #0284c7; color: #fff; border: none; padding: 12px 24px;
+      border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer;
+      transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    }
+    .btn:hover { background: #0369a1; transform: translateY(-2px); }
+    .btn-secondary { background: #334155; box-shadow: none; }
+    .btn-secondary:hover { background: #1e293b; }
+    .btn-success { background: #16a34a; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); }
+    .btn-success:hover { background: #15803d; }
+
+    /* Modal Popup */
+    #result-modal {
+      display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px);
+      justify-content: center; align-items: center; z-index: 10;
+    }
+    .modal-content {
+      background: #1e293b; border: 1px solid #38bdf8; border-radius: 16px;
+      padding: 32px; width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    }
+    .stars { font-size: 2rem; color: #f59e0b; margin: 12px 0; }
+    .score-tag { font-size: 1.1rem; color: #bae6fd; margin-bottom: 20px; }
+    .riasec-box {
+      background: #0f172a; padding: 16px; border-radius: 8px; border-left: 4px solid #38bdf8;
+      text-align: left; margin-bottom: 24px; font-size: 0.9rem; color: #e0f2fe;
+    }
+  </style>
+
+  <!-- Import Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <!-- UI Overlay -->
+  <div id="ui-header">
+    <div>
+      <div class="badge">CONVENTIONAL ISLAND</div>
+      <h2 style="margin-top: 4px; font-size: 1.4rem;">Logistics Coordinator: Route Network</h2>
+    </div>
+    <div class="hud-card">
+      <div style="font-size: 0.75rem; color: #7dd3fc; text-transform: uppercase;">Delivery SLA Status</div>
+      <div style="font-size: 1.25rem; font-weight: 700; color: #4ade80;" id="sla-status">On Schedule (100%)</div>
+    </div>
+  </div>
+
+  <!-- Route Configurator Panel -->
+  <div id="route-panel">
+    <div style="font-size: 0.75rem; color: #38bdf8; text-transform: uppercase; font-weight: 700;">Multimodal Route Optimizer</div>
+    
+    <div class="select-group">
+      <label for="mode-select">Transport Mode:</label>
+      <select id="mode-select" onchange="updateRoute()">
+        <option value="air">Air Freight (Express - High Cost)</option>
+        <option value="multimodal" selected>Multimodal Rail + Sea (Optimal Balance)</option>
+        <option value="sea">Maritime Cargo (Slow - Low Cost)</option>
+      </select>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-item">
+        <div class="metric-val" id="val-time">4 Days</div>
+        <div class="metric-lbl">Transit Time</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-val" id="val-cost">$12,500</div>
+        <div class="metric-lbl">Shipping Cost</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-val" id="val-carbon">2.1 Tons</div>
+        <div class="metric-lbl">Carbon Footprint</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-val" id="val-reliability">99.2%</div>
+        <div class="metric-lbl">Reliability Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ui-bottom-right">
+    <button class="btn btn-secondary" onclick="resetRoute()">Reset Route</button>
+    <button class="btn btn-success" onclick="dispatchCargo()">Dispatch Supply Chain</button>
+  </div>
+
+  <!-- Results Modal -->
+  <div id="result-modal">
+    <div class="modal-content">
+      <h2 id="modal-title" style="color: #38bdf8;">Optimal Route Dispatched!</h2>
+      <div class="stars" id="star-rating">★ ★ ★ ★ ★</div>
+      <div class="score-tag" id="score-text">Logistics Efficiency: 100%</div>
+      <div class="riasec-box">
+        <strong>RIASEC Score Update:</strong><br>
+        <span id="riasec-desc">+30 Conventional (C) Points added. Superb multimodal route planning, cost-time optimization, and supply chain compliance!</span>
+      </div>
+      <button class="btn" style="width: 100%;" onclick="closeModal()">Complete Career Journey</button>
+    </div>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <script>
+    // --- THREE.JS SCENE SETUP ---
+    let scene, camera, renderer;
+    let globe, routeLine, cargoMarker;
+
+    function init() {
+      const container = document.getElementById('canvas-container');
+
+      // 1. Scene & Camera
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0f172a);
+
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 2, 7);
+
+      // 2. Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      container.appendChild(renderer.domElement);
+
+      // 3. Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
+      dirLight.position.set(5, 8, 5);
+      scene.add(dirLight);
+
+      // 4. Build 3D Route Network Globe
+      createNetworkScene();
+
+      // Event Listeners
+      window.addEventListener('resize', onWindowResize);
+
+      updateRoute();
+      animate();
+    }
+
+    // --- 3D NETWORK BUILD ---
+    function createNetworkScene() {
+      // Holographic Globe Node
+      const globeGeo = new THREE.SphereGeometry(2, 32, 32);
+      const globeMat = new THREE.MeshLambertMaterial({ color: 0x1e293b, wireframe: true });
+      globe = new THREE.Mesh(globeGeo, globeMat);
+      scene.add(globe);
+
+      // Route Arc Line
+      const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(-1.8, 0.8, 0),
+        new THREE.Vector3(0, 2.5, 0),
+        new THREE.Vector3(1.8, 0.8, 0)
+      );
+
+      const points = curve.getPoints(50);
+      const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 3 });
+      routeLine = new THREE.Line(lineGeo, lineMat);
+      scene.add(routeLine);
+
+      // Cargo Container Marker
+      const cargoGeo = new THREE.BoxGeometry(0.2, 0.2, 0.4);
+      const cargoMat = new THREE.MeshLambertMaterial({ color: 0x4ade80 });
+      cargoMarker = new THREE.Mesh(cargoGeo, cargoMat);
+      cargoMarker.position.set(-1.8, 0.8, 0);
+      scene.add(cargoMarker);
+    }
+
+    // --- LOGISTICS MECHANICS ---
+    function updateRoute() {
+      const mode = document.getElementById('mode-select').value;
+
+      const timeEl = document.getElementById('val-time');
+      const costEl = document.getElementById('val-cost');
+      const carbonEl = document.getElementById('val-carbon');
+      const relEl = document.getElementById('val-reliability');
+      const slaStatus = document.getElementById('sla-status');
+
+      if (mode === 'air') {
+        timeEl.innerText = "1.5 Days";
+        costEl.innerText = "$28,000";
+        carbonEl.innerText = "8.5 Tons";
+        relEl.innerText = "96.0%";
+        slaStatus.innerText = "Express Delivery (High Cost)";
+        slaStatus.style.color = "#facc15";
+        routeLine.material.color.setHex(0xfacc15);
+      } else if (mode === 'multimodal') {
+        timeEl.innerText = "4 Days";
+        costEl.innerText = "$12,500";
+        carbonEl.innerText = "2.1 Tons";
+        relEl.innerText = "99.2%";
+        slaStatus.innerText = "On Schedule (Optimal)";
+        slaStatus.style.color = "#4ade80";
+        routeLine.material.color.setHex(0x38bdf8);
+      } else if (mode === 'sea') {
+        timeEl.innerText = "14 Days";
+        costEl.innerText = "$4,200";
+        carbonEl.innerText = "1.2 Tons";
+        relEl.innerText = "88.5%";
+        slaStatus.innerText = "Delayed / SLA At Risk";
+        slaStatus.style.color = "#f43f5e";
+        routeLine.material.color.setHex(0xf43f5e);
+      }
+    }
+
+    function resetRoute() {
+      document.getElementById('mode-select').value = 'multimodal';
+      updateRoute();
+    }
+
+    function dispatchCargo() {
+      const mode = document.getElementById('mode-select').value;
+      const success = (mode === 'multimodal');
+      showResults(success);
+    }
+
+    // --- ANIMATION LOOP ---
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Rotate Globe Network
+      if (globe) globe.rotation.y += 0.002;
+
+      // Move Cargo Marker Along Network
+      const time = (Date.now() * 0.001) % 2;
+      const progress = time / 2;
+      cargoMarker.position.x = -1.8 + progress * 3.6;
+      cargoMarker.position.y = 0.8 + Math.sin(progress * Math.PI) * 1.7;
+
+      renderer.render(scene, camera);
+    }
+
+    // --- RESULTS EVALUATION ---
+    function showResults(success) {
+      const modal = document.getElementById('result-modal');
+      const title = document.getElementById('modal-title');
+      const stars = document.getElementById('star-rating');
+      const scoreText = document.getElementById('score-text');
+      const riasecDesc = document.getElementById('riasec-desc');
+
+      if (success) {
+        title.innerText = "Optimal Route Dispatched!";
+        title.style.color = "#38bdf8";
+        stars.innerText = "★ ★ ★ ★ ★";
+        scoreText.innerText = "Logistics Efficiency: 100%";
+        riasecDesc.innerHTML = "<strong>+30 Conventional (C) Points</strong> added to your RIASEC Profile. Perfect balance between transit speed, shipping budget, and route reliability!";
+      } else {
+        title.innerText = "Suboptimal Route Choice!";
+        title.style.color = "#f87171";
+        stars.innerText = "★ ★ ☆ ☆ ☆";
+        scoreText.innerText = "Logistics Efficiency: 45%";
+        riasecDesc.innerHTML = "<strong>+10 Conventional (C) Points</strong> added. Multimodal Rail + Sea provides the optimal cost-to-speed balance for standard supply chain SLAs.";
+      }
+
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById('result-modal').style.display = "none";
+      resetRoute();
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

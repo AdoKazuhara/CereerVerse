@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareerVerse 3D - Medical Lab Tech: Pathogen Identifier</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #020617; color: #f8fafc; overflow: hidden; height: 100vh; }
+    
+    #canvas-container { width: 100vw; height: 100vh; display: block; }
+
+    /* UI Overlay Header */
+    #ui-header {
+      position: absolute; top: 20px; left: 20px; right: 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      pointer-events: none;
+    }
+    .badge {
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+      border: 1px solid #a855f7; padding: 8px 16px; border-radius: 20px;
+      font-size: 0.85rem; font-weight: 600; color: #c084fc; letter-spacing: 0.5px;
+    }
+    .hud-card {
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+      border: 1px solid #334155; border-radius: 12px; padding: 12px 20px;
+      color: #fff; pointer-events: auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+      min-width: 220px;
+    }
+
+    /* Lens Controls HUD */
+    #lens-panel {
+      position: absolute; bottom: 30px; left: 20px; width: 340px;
+      background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px);
+      border: 1px solid #334155; border-radius: 12px; padding: 16px;
+      color: #fff; pointer-events: auto;
+    }
+
+    .slider-group { margin: 12px 0; }
+    .slider-group label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 4px; }
+    .slider-group input { width: 100%; accent-color: #a855f7; cursor: pointer; }
+
+    .filter-btn-group { display: flex; gap: 8px; margin-top: 10px; }
+    .filter-btn {
+      flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid #475569;
+      background: #1e293b; color: #cbd5e1; font-size: 0.75rem; font-weight: 600; cursor: pointer;
+    }
+    .filter-btn.active { background: #a855f7; color: #fff; border-color: #c084fc; }
+
+    /* Right Controls */
+    #ui-bottom-right {
+      position: absolute; bottom: 30px; right: 20px;
+      display: flex; gap: 12px; pointer-events: auto;
+    }
+    .btn {
+      background: #9333ea; color: #fff; border: none; padding: 12px 24px;
+      border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer;
+      transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+    }
+    .btn:hover { background: #7e22ce; transform: translateY(-2px); }
+    .btn-secondary { background: #334155; box-shadow: none; }
+    .btn-secondary:hover { background: #1e293b; }
+    .btn-success { background: #16a34a; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); }
+    .btn-success:hover { background: #15803d; }
+
+    /* Modal Popup */
+    #result-modal {
+      display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(12px);
+      justify-content: center; align-items: center; z-index: 10;
+    }
+    .modal-content {
+      background: #0f172a; border: 1px solid #c084fc; border-radius: 16px;
+      padding: 32px; width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    }
+    .stars { font-size: 2rem; color: #f59e0b; margin: 12px 0; }
+    .score-tag { font-size: 1.1rem; color: #94a3b8; margin-bottom: 20px; }
+    .riasec-box {
+      background: #020617; padding: 16px; border-radius: 8px; border-left: 4px solid #c084fc;
+      text-align: left; margin-bottom: 24px; font-size: 0.9rem; color: #cbd5e1;
+    }
+  </style>
+
+  <!-- Import Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <!-- UI Overlay -->
+  <div id="ui-header">
+    <div>
+      <div class="badge">INVESTIGATIVE ISLAND</div>
+      <h2 style="margin-top: 4px; font-size: 1.4rem;">Medical Lab Tech: Pathogen Identifier</h2>
+    </div>
+    <div class="hud-card">
+      <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Sample Clarity</div>
+      <div style="font-size: 1.25rem; font-weight: 700; color: #f43f5e;" id="clarity-status">BLURRED (Out of Focus)</div>
+    </div>
+  </div>
+
+  <!-- Lens & Filter Controls Panel -->
+  <div id="lens-panel">
+    <div style="font-size: 0.75rem; color: #c084fc; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Microscope Objective Controls</div>
+    
+    <div class="slider-group">
+      <label id="focus-label">Focal Distance: 20%</label>
+      <input type="range" id="focus-slider" min="0" max="100" value="20" oninput="updateFocus(this.value)">
+    </div>
+
+    <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 10px;">Stain Filter Spectrum:</div>
+    <div class="filter-btn-group">
+      <button class="filter-btn active" id="filter-bright" onclick="setFilter('bright')">Brightfield</button>
+      <button class="filter-btn" id="filter-gram" onclick="setFilter('gram')">Gram Stain</button>
+      <button class="filter-btn" id="filter-uv" onclick="setFilter('uv')">Fluorescence</button>
+    </div>
+  </div>
+
+  <div id="ui-bottom-right">
+    <button class="btn btn-secondary" onclick="resetMicroscope()">Reset Objective</button>
+    <button class="btn btn-success" onclick="identifyPathogen()">Match Target Reference</button>
+  </div>
+
+  <!-- Results Modal -->
+  <div id="result-modal">
+    <div class="modal-content">
+      <h2 id="modal-title" style="color: #c084fc;">Pathogen Identified!</h2>
+      <div class="stars" id="star-rating">★ ★ ★ ★ ★</div>
+      <div class="score-tag" id="score-text">Diagnostic Accuracy: 100%</div>
+      <div class="riasec-box">
+        <strong>RIASEC Score Update:</strong><br>
+        <span id="riasec-desc">+30 Investigative (I) Points added. Outstanding scientific observation, biological testing discipline, and empirical precision!</span>
+      </div>
+      <button class="btn" style="width: 100%;" onclick="closeModal()">Continue Exploring</button>
+    </div>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <script>
+    // --- THREE.JS SCENE SETUP ---
+    let scene, camera, renderer;
+    let pathogenMesh, spikeGroup;
+    let currentFocus = 20; // Target optimal focus is 80
+    let currentFilter = 'bright';
+
+    function init() {
+      const container = document.getElementById('canvas-container');
+
+      // 1. Scene & Camera
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x020617);
+
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 0, 10);
+
+      // 2. Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      container.appendChild(renderer.domElement);
+
+      // 3. Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+      scene.add(ambientLight);
+
+      const lightPoint = new THREE.PointLight(0xa855f7, 2, 25);
+      lightPoint.position.set(5, 5, 5);
+      scene.add(lightPoint);
+
+      // 4. Build 3D Biological Pathogen Model
+      createPathogenModel();
+
+      // Event Listeners
+      window.addEventListener('resize', onWindowResize);
+
+      updateFocus(currentFocus);
+      animate();
+    }
+
+    // --- 3D CELL / PATHOGEN MODEL BUILD ---
+    function createPathogenModel() {
+      // Main Viral/Bacterial Sphere Base
+      const baseGeo = new THREE.DodecahedronGeometry(2.2, 3);
+      const baseMat = new THREE.MeshLambertMaterial({ 
+        color: 0x38bdf8, 
+        wireframe: false,
+        transparent: true,
+        opacity: 0.85
+      });
+      pathogenMesh = new THREE.Mesh(baseGeo, baseMat);
+      scene.add(pathogenMesh);
+
+      // Surface Receptor Spikes
+      spikeGroup = new THREE.Group();
+      const spikeGeo = new THREE.CylinderGeometry(0.04, 0.12, 0.8, 8);
+      const spikeMat = new THREE.MeshLambertMaterial({ color: 0xf43f5e });
+
+      // Distribute spikes evenly over the sphere surface
+      for (let i = 0; i < 40; i++) {
+        const spike = new THREE.Mesh(spikeGeo, spikeMat);
+        const phi = Math.acos(-1 + (2 * i) / 40);
+        const theta = Math.sqrt(40 * Math.PI) * phi;
+
+        spike.position.setFromSphericalCoords(2.4, phi, theta);
+        spike.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), spike.position.clone().normalize());
+        spikeGroup.add(spike);
+      }
+      pathogenMesh.add(spikeGroup);
+    }
+
+    // --- INTERACTIVE MICROSCOPE MECHANICS ---
+    function updateFocus(val) {
+      currentFocus = parseInt(val);
+      document.getElementById('focus-label').innerText = `Focal Distance: ${currentFocus}%`;
+
+      // Simulating optical focal blur via z-position and mesh displacement
+      const targetDistance = 80;
+      const blurFactor = Math.abs(currentFocus - targetDistance) / 100;
+      
+      // Shift camera distance based on focal setting
+      camera.position.z = 10 + (blurFactor * 8);
+
+      const clarityText = document.getElementById('clarity-status');
+      if (blurFactor < 0.1) {
+        clarityText.innerText = "SHARP (Optimal Focus)";
+        clarityText.style.color = "#4ade80";
+      } else if (blurFactor < 0.3) {
+        clarityText.innerText = "PARTIAL FOCUS";
+        clarityText.style.color = "#facc15";
+      } else {
+        clarityText.innerText = "BLURRED (Out of Focus)";
+        clarityText.style.color = "#f43f5e";
+      }
+    }
+
+    function setFilter(filterType) {
+      currentFilter = filterType;
+
+      // Reset button UI active classes
+      ['bright', 'gram', 'uv'].forEach(f => {
+        document.getElementById(`filter-${f}`).classList.remove('active');
+      });
+      document.getElementById(`filter-${filterType}`).classList.add('active');
+
+      // Update shader colors based on light spectrum filter
+      if (filterType === 'bright') {
+        scene.background.setHex(0x020617);
+        pathogenMesh.material.color.setHex(0x38bdf8);
+      } else if (filterType === 'gram') {
+        scene.background.setHex(0x1e1b4b);
+        pathogenMesh.material.color.setHex(0xc084fc); // Gram-positive purple
+      } else if (filterType === 'uv') {
+        scene.background.setHex(0x052e16);
+        pathogenMesh.material.color.setHex(0x4ade80); // Fluorescent Green
+      }
+    }
+
+    function resetMicroscope() {
+      currentFocus = 20;
+      document.getElementById('focus-slider').value = 20;
+      setFilter('bright');
+      updateFocus(20);
+    }
+
+    function identifyPathogen() {
+      const isFocused = Math.abs(currentFocus - 80) <= 10;
+      const isCorrectFilter = (currentFilter === 'gram' || currentFilter === 'uv');
+      showResults(isFocused && isCorrectFilter);
+    }
+
+    // --- ANIMATION LOOP ---
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Slow organic rotation of cellular pathogen sample
+      if (pathogenMesh) {
+        pathogenMesh.rotation.y += 0.005;
+        pathogenMesh.rotation.x += 0.002;
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // --- RESULTS EVALUATION ---
+    function showResults(success) {
+      const modal = document.getElementById('result-modal');
+      const title = document.getElementById('modal-title');
+      const stars = document.getElementById('star-rating');
+      const scoreText = document.getElementById('score-text');
+      const riasecDesc = document.getElementById('riasec-desc');
+
+      if (success) {
+        title.innerText = "Pathogen Identified!";
+        title.style.color = "#c084fc";
+        stars.innerText = "★ ★ ★ ★ ★";
+        scoreText.innerText = "Diagnostic Accuracy: 100%";
+        riasecDesc.innerHTML = "<strong>+30 Investigative (I) Points</strong> added to your RIASEC Profile. Exceptional lab discipline, optical focus calibration, and biological sample analysis!";
+      } else {
+        title.innerText = "Sample Inconclusive!";
+        title.style.color = "#f87171";
+        stars.innerText = "★ ★ ☆ ☆ ☆";
+        scoreText.innerText = "Diagnostic Accuracy: 35%";
+        riasecDesc.innerHTML = "<strong>+10 Investigative (I) Points</strong> added. Adjust the objective focal distance slider near 80% and apply Gram Stain or Fluorescence filters to resolve surface structures.";
+      }
+
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById('result-modal').style.display = "none";
+      resetMicroscope();
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
