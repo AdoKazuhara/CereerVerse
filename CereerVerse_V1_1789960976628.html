@@ -289,34 +289,6 @@
 .chat-form input::placeholder{color:rgba(255,255,255,.45)}
 .chat-form button{border:0;border-radius:12px;padding:12px 18px;background:#38bdf8;color:#082f49;font-weight:800;cursor:pointer}
 .chat-form button:disabled{opacity:.5;cursor:default}
-.minigame-view{display:none;text-align:center;padding:12px 0 6px}
-.minigame-view.open{display:block}
-.minigame-view h3{margin:0 0 8px;font-size:clamp(22px,4vw,30px)}
-.minigame-view-intro{margin:0 auto 22px!important;max-width:560px}
-.level-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.level-choice,.school-level-choice{
-  min-height:118px;border:1px solid rgba(255,255,255,.16);border-radius:18px;
-  background:rgba(255,255,255,.06);color:#fff;padding:20px 14px;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  transition:transform .2s,background .2s,border-color .2s,box-shadow .2s;
-}
-.level-choice:hover,.school-level-choice:hover,.level-choice.selected,.school-level-choice.selected{
-  transform:translateY(-3px);background:rgba(255,255,255,.13);
-  border-color:#fde68a;box-shadow:0 10px 28px rgba(0,0,0,.2);
-}
-.level-choice strong,.school-level-choice strong{font-size:clamp(16px,2.5vw,22px);letter-spacing:.5px}
-.level-choice small,.school-level-choice small{font-size:12px;line-height:1.4;color:rgba(255,255,255,.68)}
-.mini-secondary-view{display:none;text-align:center}
-.mini-secondary-view.open{display:block}
-.mini-level-back{border:0;background:transparent;color:#b9c8ff;cursor:pointer;padding:0;margin:0 auto 18px;font-weight:800}
-.mini-level-back:hover{text-decoration:underline}
-.mini-secondary-view h3{margin-bottom:22px}
-.school-level-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-@media(max-width:600px){
-  .level-grid{grid-template-columns:1fr}
-  .level-choice{min-height:86px;padding:14px}
-  .school-level-grid{grid-template-columns:1fr}
-}
  @media(max-width:600px){.island-actions{padding:0 14px 20px}.career-action-btn{padding:10px 13px;font-size:13px}.career-panel{padding:20px;border-radius:20px}.route-step-details{padding-left:18px}.route-detail-grid{grid-template-columns:1fr}}
 
 
@@ -678,40 +650,6 @@ showIsland(0);
     </form>
    </div>
   </div>
-  <div class="minigame-view" id="minigame-view">
-   <div id="mini-primary-level-view">
-    <h3 data-i18n="miniGameTitle">Select Your Level</h3>
-    <p class="minigame-view-intro" data-i18n="miniGameIntro">Choose the school level for your mini game.</p>
-    <div class="level-grid">
-     <button class="level-choice" type="button" data-level="newborn">
-      <strong data-i18n="miniNewborn">NEWBORN</strong>
-      <small data-i18n="miniPreschool">Preschool level</small>
-     </button>
-     <button class="level-choice" type="button" data-level="kid">
-      <strong data-i18n="miniKid">KID</strong>
-      <small data-i18n="miniPrimary">Primary school</small>
-     </button>
-     <button class="level-choice" type="button" data-level="teenager">
-      <strong data-i18n="miniTeenager">TEENAGER</strong>
-      <small data-i18n="miniSecondary">Secondary school</small>
-     </button>
-    </div>
-   </div>
-   <div class="mini-secondary-view" id="mini-secondary-view">
-    <button class="mini-level-back" id="mini-level-back" type="button" data-i18n="miniLevelBack">← Back to levels</button>
-    <h3 data-i18n="miniSecondaryTitle">Select Your Secondary Level</h3>
-    <div class="school-level-grid">
-     <button class="school-level-choice" type="button" data-level="menengah-rendah">
-      <strong data-i18n="miniLowerSecondary">MENENGAH RENDAH</strong>
-      <small data-i18n="miniLowerSecondaryHint">Lower secondary</small>
-     </button>
-     <button class="school-level-choice" type="button" data-level="menengah-atas">
-      <strong data-i18n="miniUpperSecondary">MENENGAH ATAS</strong>
-      <small data-i18n="miniUpperSecondaryHint">Upper secondary</small>
-     </button>
-    </div>
-   </div>
-  </div>
  </div>
 </div>
 
@@ -727,12 +665,6 @@ const routeTitle=document.getElementById('route-title');
 const routeIntro=document.getElementById('route-intro');
 const routeSteps=document.getElementById('route-steps');
 const routeNote=document.getElementById('route-note');
-const minigameView=document.getElementById('minigame-view');
-const minigamePrimaryView=document.getElementById('mini-primary-level-view');
-const minigameSecondaryView=document.getElementById('mini-secondary-view');
-const minigameLevelBack=document.getElementById('mini-level-back');
-const minigameLevelChoices=document.querySelectorAll('.level-choice');
-const minigameSchoolChoices=document.querySelectorAll('.school-level-choice');
 
 let openCareerType=null;
 function openCareerOverview(type){
@@ -754,7 +686,7 @@ function openCareerOverview(type){
   card.addEventListener('click',()=>openRoute(type,index));
   careerList.appendChild(card);
  });
-  careerListView.style.display='block'; routeView.classList.remove('open'); minigameView.classList.remove('open');
+ careerListView.style.display='block'; routeView.classList.remove('open');
  careerModal.classList.add('open'); careerModal.setAttribute('aria-hidden','false');
 }
 let openCareerIndex=null;
@@ -937,52 +869,18 @@ let openCareerIndex=null;
   routeSteps.appendChild(item);
  });
  resetCareerChat();
-  careerListView.style.display='none'; routeView.classList.add('open'); minigameView.classList.remove('open');
+ careerListView.style.display='none'; routeView.classList.add('open');
 }
- function resetMiniGameLevels(){
-  minigameLevelChoices.forEach(choice=>choice.classList.remove('selected'));
-  minigameSchoolChoices.forEach(choice=>choice.classList.remove('selected'));
-   minigamePrimaryView.style.display='block';
-   minigameSecondaryView.classList.remove('open');
- }
- function openMiniGame(){
-  const ms=currentLang==='ms';
-  careerModalTitle.textContent=ms ? 'Pilih Tahap Anda' : 'Select Your Level';
-  careerModalDescription.textContent=ms ? 'Pilih tahap sekolah untuk permainan mini anda.' : 'Choose the school level for your mini game.';
-  const langNoteEl=document.getElementById('career-lang-note');
-  if(langNoteEl) langNoteEl.textContent='';
-  resetMiniGameLevels();
-  careerListView.style.display='none';
-  routeView.classList.remove('open');
-  minigameView.classList.add('open');
-  careerModal.classList.add('open');
-  careerModal.setAttribute('aria-hidden','false');
- }
- function chooseMiniGameLevel(choice){
-  const isSchoolLevel=choice.classList.contains('school-level-choice');
-  const choices=isSchoolLevel ? minigameSchoolChoices : minigameLevelChoices;
-  choices.forEach(item=>item.classList.remove('selected'));
-  choice.classList.add('selected');
-  if(choice.dataset.level==='teenager'){
-    minigamePrimaryView.style.display='none';
-    minigameSecondaryView.classList.add('open');
-  } else if(!isSchoolLevel){
-   minigameSchoolChoices.forEach(item=>item.classList.remove('selected'));
-  }
- }
 function closeCareerOverview(){
-  careerModal.classList.remove('open'); careerModal.setAttribute('aria-hidden','true');
-  careerListView.style.display='block'; routeView.classList.remove('open'); minigameView.classList.remove('open');
+ careerModal.classList.remove('open'); careerModal.setAttribute('aria-hidden','true');
+ careerListView.style.display='block'; routeView.classList.remove('open');
 }
 document.querySelectorAll('.overview-btn').forEach(btn=>btn.addEventListener('click',e=>{
  e.stopPropagation(); openCareerOverview(btn.closest('.island-node').dataset.type);
 }));
 document.querySelectorAll('.minigame-btn').forEach(btn=>btn.addEventListener('click',e=>{
-  e.stopPropagation(); openMiniGame();
+ e.stopPropagation(); alert(currentLang === 'ms' ? '🎮 Permainan Mini akan datang!' : '🎮 Mini Game coming soon!');
 }));
- minigameLevelChoices.forEach(choice=>choice.addEventListener('click',()=>chooseMiniGameLevel(choice)));
- minigameSchoolChoices.forEach(choice=>choice.addEventListener('click',()=>chooseMiniGameLevel(choice)));
- minigameLevelBack.addEventListener('click',resetMiniGameLevels);
 document.getElementById('career-close').addEventListener('click',closeCareerOverview);
 document.getElementById('career-back').addEventListener('click',()=>{
  routeView.classList.remove('open'); careerListView.style.display='block';
@@ -1117,20 +1015,6 @@ const translations = {
     startBtn: 'START EXPLORING →',
     overviewBtn: '📚 Career Overview',
     minigameBtn: '🎮 Mini Game',
-     miniGameTitle: 'Select Your Level',
-     miniGameIntro: 'Choose the school level for your mini game.',
-     miniNewborn: 'NEWBORN',
-     miniPreschool: 'Preschool level',
-     miniKid: 'KID',
-     miniPrimary: 'Primary school',
-     miniTeenager: 'TEENAGER',
-     miniSecondary: 'Secondary school',
-     miniSecondaryTitle: 'Select Your Secondary Level',
-     miniLevelBack: '← Back to levels',
-     miniLowerSecondary: 'MENENGAH RENDAH',
-     miniLowerSecondaryHint: 'Lower secondary',
-     miniUpperSecondary: 'MENENGAH ATAS',
-     miniUpperSecondaryHint: 'Upper secondary',
      prevIsland: '← PREVIOUS ISLAND',
      nextIsland: 'NEXT ISLAND →',
      islandJourney: 'ISLAND JOURNEY',
@@ -1148,20 +1032,6 @@ const translations = {
     startBtn: 'MULA PENGEMBARAAN →',
     overviewBtn: '📚 Gambaran Kerjaya',
     minigameBtn: '🎮 Permainan Mini',
-     miniGameTitle: 'Pilih Tahap Anda',
-     miniGameIntro: 'Pilih tahap sekolah untuk permainan mini anda.',
-     miniNewborn: 'PRASEKOLAH',
-     miniPreschool: 'Tahap prasekolah',
-     miniKid: 'KANAK-KANAK',
-     miniPrimary: 'Sekolah rendah',
-     miniTeenager: 'REMAJA',
-     miniSecondary: 'Sekolah menengah',
-     miniSecondaryTitle: 'Pilih Tahap Sekolah Menengah',
-     miniLevelBack: '← Kembali ke pilihan tahap',
-     miniLowerSecondary: 'MENENGAH RENDAH',
-     miniLowerSecondaryHint: 'Tingkatan 1 hingga 3',
-     miniUpperSecondary: 'MENENGAH ATAS',
-     miniUpperSecondaryHint: 'Tingkatan 4 hingga 5',
      prevIsland: '← PULAU SEBELUMNYA',
      nextIsland: 'PULAU SETERUSNYA →',
      islandJourney: 'PENGEMBARAAN PULAU',
