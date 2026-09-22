@@ -289,6 +289,28 @@
 .chat-form input::placeholder{color:rgba(255,255,255,.45)}
 .chat-form button{border:0;border-radius:12px;padding:12px 18px;background:#38bdf8;color:#082f49;font-weight:800;cursor:pointer}
 .chat-form button:disabled{opacity:.5;cursor:default}
+ .minigame-modal{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(2,5,18,.82);backdrop-filter:blur(12px)}
+ .minigame-modal.open{display:flex}
+ .minigame-panel{width:min(1120px,100%);height:min(88vh,820px);display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(145deg,rgba(8,112,145,.99),rgba(6,78,99,.99));border:1px solid rgba(255,255,255,.24);border-radius:26px;color:#fff;box-shadow:0 24px 80px rgba(0,0,0,.5)}
+ .minigame-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:24px 28px 18px;border-bottom:1px solid rgba(255,255,255,.14)}
+ .minigame-header h2{margin:0 0 6px;font-size:clamp(24px,4vw,38px)}
+ .minigame-header p{margin:0;color:rgba(255,255,255,.72);line-height:1.5}
+ .minigame-close{border:0;background:rgba(255,255,255,.12);color:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:22px;flex:0 0 auto}
+ .minigame-close:hover{background:rgba(255,255,255,.22)}
+ .minigame-body{min-height:0;flex:1;overflow:auto;padding:22px 28px 28px}
+ .minigame-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+ .minigame-card{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(255,255,255,.08)}
+ .minigame-card-copy{min-width:0}.minigame-card h3{margin:0 0 5px;font-size:18px}.minigame-card p{margin:0;color:rgba(255,255,255,.65);font-size:13px;line-height:1.45}
+ .minigame-play{border:0;border-radius:12px;padding:11px 15px;background:#fde68a;color:#164e63;font-weight:900;cursor:pointer;white-space:nowrap}
+ .minigame-play:hover{transform:translateY(-2px);background:#fff}
+ .minigame-frame-wrap{display:none;height:100%;min-height:0;flex-direction:column;gap:12px}
+ .minigame-frame-wrap.open{display:flex}
+ .minigame-frame-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+ .minigame-back{border:1px solid rgba(255,255,255,.28);border-radius:12px;padding:10px 14px;background:rgba(255,255,255,.08);color:#fff;font-weight:800;cursor:pointer}
+ .minigame-back:hover{background:rgba(255,255,255,.16)}
+ .minigame-current-title{font-weight:900;color:#fde68a}
+ .minigame-frame{width:100%;height:100%;min-height:520px;border:0;border-radius:18px;background:#050816}
+ @media(max-width:700px){.minigame-modal{padding:10px}.minigame-panel{height:94vh;border-radius:20px}.minigame-header{padding:18px 18px 14px}.minigame-body{padding:16px}.minigame-list{grid-template-columns:1fr}.minigame-card{align-items:flex-start;flex-direction:column}.minigame-play{width:100%}.minigame-frame{min-height:460px}}
  @media(max-width:600px){.island-actions{padding:0 14px 20px}.career-action-btn{padding:10px 13px;font-size:13px}.career-panel{padding:20px;border-radius:20px}.route-step-details{padding-left:18px}.route-detail-grid{grid-template-columns:1fr}}
 
 
@@ -653,6 +675,28 @@ showIsland(0);
  </div>
 </div>
 
+<div class="minigame-modal" id="minigame-modal" aria-hidden="true">
+ <div class="minigame-panel" role="dialog" aria-modal="true" aria-labelledby="minigame-modal-title">
+  <div class="minigame-header">
+   <div>
+    <h2 id="minigame-modal-title">Island Mini Games</h2>
+    <p id="minigame-modal-description">Choose a career simulation to play.</p>
+   </div>
+   <button class="minigame-close" id="minigame-close" type="button" aria-label="Close mini games">×</button>
+  </div>
+  <div class="minigame-body">
+   <div class="minigame-list" id="minigame-list"></div>
+   <div class="minigame-frame-wrap" id="minigame-frame-wrap">
+    <div class="minigame-frame-toolbar">
+     <button class="minigame-back" id="minigame-back" type="button">← Back to games</button>
+     <span class="minigame-current-title" id="minigame-current-title"></span>
+    </div>
+    <iframe class="minigame-frame" id="minigame-frame" title="Career mini game" allow="fullscreen"></iframe>
+   </div>
+  </div>
+ </div>
+</div>
+
 <script>
 const careerData = {"R": {"title": {"ms": "Pulau Realistik — Gambaran Kerjaya", "en": "Realistic Island — Career Overview"}, "description": {"ms": "Kerjaya yang banyak melibatkan mesin, alatan, pembinaan, operasi, penyelenggaraan dan kerja praktikal.", "en": "Careers that heavily involve machines, tools, construction, operations, maintenance and practical work."}, "careers": [["Mechanical Engineer", "Engineering / machines", ["SPM → Foundation / Matriculation / Diploma in Mechanical Engineering", "→ Bachelor of Mechanical Engineering or related engineering degree", "→ Internship / industrial training → graduate engineer role", "→ Check current professional-body requirements for regulated engineering practice"], "Jurutera Mekanikal"], ["Electrical & Electronics Technician", "Technical / electrical systems", ["SPM → Certificate or Diploma in Electrical & Electronics / related TVET programme", "→ Practical training / industrial placement", "→ Technician or maintenance role", "→ Continue to higher qualification or specialised certification as needed"], "Juruteknik Elektrik & Elektronik"], ["Automotive Technician", "Vehicles / hands-on repair", ["SPM → Automotive certificate / SKM / Diploma in Automotive Technology", "→ Workshop practical training / industrial attachment", "→ Automotive technician / diagnostic technician", "→ Specialise in EV, diagnostics or workshop management"], "Juruteknik Automotif"], ["Civil Engineering Technician", "Construction / site work", ["SPM → Certificate / Diploma in Civil Engineering or Civil Engineering Technology", "→ Site and laboratory practical training", "→ Civil engineering technician / site support roles", "→ Continue to degree-level study if desired"], "Juruteknik Kejuruteraan Awam"], ["Industrial Maintenance Technician", "Machines / maintenance", ["SPM → TVET certificate / SKM / Diploma in Industrial Maintenance or related field", "→ Workshop and industrial practical training", "→ Maintenance technician role", "→ Progress into senior technician, supervisor or further study"], "Juruteknik Penyelenggaraan Industri"], ["Welding & Fabrication Technician", "Metalwork / fabrication", ["SPM → Certificate / Diploma in Welding Technology or Mechanical Fabrication", "→ Practical welding certification / workshop training", "→ Fabrication or welding technician role", "→ Progress to certified specialist welder or workshop supervisor"], "Juruteknik Kimpalan & Fabrikasi"], ["Marine Engineering Technician", "Ships / marine systems", ["SPM → Diploma in Marine Engineering or Nautical Studies", "→ Sea time / onboard practical training as required", "→ Marine engineering technician or engine room role", "→ Pursue further certificate of competency for career progression"], "Juruteknik Kejuruteraan Marin"], ["Agrotechnology Technician", "Agriculture / agrotechnology", ["SPM → Certificate / Diploma in Agrotechnology or Agriculture Science", "→ Farm / plantation practical attachment", "→ Agrotechnology technician or field officer role", "→ Continue to degree study or specialise in precision agriculture"], "Juruteknik Agroteknologi"], ["Aircraft Maintenance Technician", "Aviation / aircraft systems", ["SPM → Diploma in Aircraft Maintenance Engineering or Aviation Technology", "→ Approved aviation training organisation practical hours", "→ Aircraft maintenance technician role", "→ Pursue licensing for further progression, subject to current civil aviation requirements"], "Juruteknik Penyelenggaraan Pesawat"], ["HVAC & Refrigeration Technician", "Building systems / climate control", ["SPM → Certificate / Diploma in Air-Conditioning & Refrigeration or Mechanical Engineering Technology", "→ Workshop and on-site practical training", "→ HVAC / refrigeration technician role", "→ Progress into senior technician or building-systems specialist"], "Juruteknik Penyaman Udara & Penyejukan"]]}, "I": {"title": {"ms": "Pulau Investigatif — Gambaran Kerjaya", "en": "Investigative Island — Career Overview"}, "description": {"ms": "Kerjaya yang banyak melibatkan penyelidikan, analisis, sains, data, eksperimen dan penyelesaian masalah.", "en": "Careers that heavily involve research, analysis, science, data, experiments and problem-solving."}, "careers": [["Data Analyst", "Data / statistics", ["SPM → Foundation / Diploma in Data, IT, Statistics, Mathematics or related field", "→ Bachelor in Data Science, Statistics, Computer Science or related field", "→ Portfolio + internship", "→ Data analyst / business intelligence roles"], "Penganalisis Data"], ["Software Developer", "Programming / problem solving", ["SPM → Foundation / Diploma in Computer Science, Software Engineering or IT", "→ Bachelor in Computer Science / Software Engineering or related degree", "→ Programming projects + internship", "→ Junior developer → software developer"], "Pembangun Perisian"], ["Laboratory Technologist", "Laboratory / science", ["SPM → Diploma in Medical Laboratory Technology / related science programme", "→ Practical laboratory training", "→ Laboratory technologist roles, subject to current requirements", "→ Continue degree study for further specialisation"], "Teknologis Makmal"], ["Research Assistant", "Research / experiments", ["SPM → Foundation / Diploma in a relevant science or technical field", "→ Bachelor degree in the relevant discipline", "→ Research project / laboratory experience", "→ Research assistant → postgraduate study for research-intensive careers"], "Pembantu Penyelidikan"], ["Environmental Scientist", "Environment / field research", ["SPM → Foundation / Matriculation / Diploma in science or environmental field", "→ Bachelor in Environmental Science, Biology, Chemistry or related field", "→ Fieldwork / internship", "→ Environmental research, monitoring or consulting roles"], "Saintis Alam Sekitar"], ["Data Scientist", "Data / machine learning", ["SPM → Foundation / Diploma in Data Science, Mathematics, Statistics or Computer Science", "→ Bachelor in Data Science, Computer Science or related field", "→ Machine learning / analytics projects + internship", "→ Data scientist → specialised ML / AI roles"], "Saintis Data"], ["Cybersecurity Analyst", "Security / networks", ["SPM → Foundation / Diploma in Computer Science, Networking or Cybersecurity", "→ Bachelor in Cybersecurity, Computer Science or related field", "→ Security certifications and practical labs + internship", "→ Cybersecurity analyst → specialist / security engineer roles"], "Penganalisis Keselamatan Siber"], ["Biomedical Scientist", "Medical laboratory / diagnostics", ["SPM → Foundation / Diploma in a relevant science field", "→ Bachelor in Biomedical Science or related field", "→ Clinical laboratory attachment / practical training", "→ Biomedical scientist role, subject to current registration requirements"], "Saintis Bioperubatan"], ["Actuarial Analyst", "Risk / statistics", ["SPM → Foundation / Diploma in Actuarial Science, Mathematics or Statistics", "→ Bachelor in Actuarial Science or related quantitative field", "→ Progress through professional actuarial examinations", "→ Actuarial analyst → qualified actuary, subject to current professional-body requirements"], "Penganalisis Aktuari"], ["Geologist / Geoscientist", "Earth science / field research", ["SPM → Foundation / Matriculation / Diploma in Geology or Earth Science", "→ Bachelor in Geology, Geoscience or related field", "→ Fieldwork and mapping practical experience", "→ Geologist / geoscience roles in exploration, environmental or engineering geology"], "Ahli Geologi / Ahli Sains Bumi"]]}, "A": {"title": {"ms": "Pulau Artistik — Gambaran Kerjaya", "en": "Artistic Island — Career Overview"}, "description": {"ms": "Kerjaya yang memberi ruang kepada imaginasi, reka bentuk, visual, penulisan, persembahan dan penciptaan idea.", "en": "Careers that give room for imagination, design, visuals, writing, performance and creating ideas."}, "careers": [["Graphic Designer", "Visual design", ["SPM → Diploma / Foundation in Graphic Design, Visual Communication or related field", "→ Bachelor in Graphic Design / Visual Communication if desired", "→ Portfolio + internship/freelance projects", "→ Graphic designer / visual designer"], "Pereka Grafik"], ["UI/UX Designer", "Digital products / design", ["SPM → Diploma / Foundation in Multimedia, Graphic Design, Interaction Design or related field", "→ Bachelor in a related design / computing field if desired", "→ UI/UX portfolio + usability projects", "→ Junior UI/UX designer → product designer"], "Pereka UI/UX"], ["Animator", "Animation / storytelling", ["SPM → Diploma in Animation, 3D, Multimedia or related creative field", "→ Bachelor in Animation / Digital Media if desired", "→ Showreel + industry projects", "→ Animator / 2D / 3D / motion roles"], "Animator"], ["Content Creator", "Media / storytelling", ["SPM → Diploma / degree in Media, Communication, Multimedia or related field is one route", "→ Build portfolio across video, writing, photography or social media", "→ Internship / freelance / personal projects", "→ Content creator / media production roles"], "Pencipta Kandungan"], ["Photographer", "Photography / visual media", ["SPM → Certificate / Diploma in Photography, Creative Media or related field, or skills-based learning", "→ Build portfolio and practical experience", "→ Production assistance / freelance projects", "→ Photographer / visual content specialist"], "Jurugambar"], ["Interior Designer", "Space / interior design", ["SPM → Diploma / Foundation in Interior Design or related field", "→ Bachelor in Interior Design if desired", "→ Portfolio + internship with a design firm", "→ Interior designer, subject to current professional registration where applicable"], "Pereka Dalaman"], ["Fashion Designer", "Fashion / apparel design", ["SPM → Diploma / Foundation in Fashion Design or Textile Design", "→ Bachelor in Fashion Design if desired", "→ Portfolio + internship or apprenticeship with a design house", "→ Fashion designer / stylist roles"], "Pereka Fesyen"], ["Music Producer", "Audio / music production", ["SPM → Diploma / Foundation in Music Production, Audio Engineering or related field, or skills-based learning", "→ Build a portfolio of produced tracks and technical skills", "→ Studio internship / freelance projects", "→ Music producer / audio engineer roles"], "Penerbit Muzik"], ["Film / Video Editor", "Film / post-production", ["SPM → Diploma in Film Production, Multimedia or related creative field", "→ Bachelor in Film / Media Production if desired", "→ Editing portfolio + internship or freelance projects", "→ Video editor → post-production specialist roles"], "Penyunting Filem / Video"], ["Game Designer", "Game design / interactive media", ["SPM → Diploma / Foundation in Game Design, Multimedia or Computer Science", "→ Bachelor in Game Design / Development if desired", "→ Game projects / prototypes + portfolio", "→ Junior game designer → game designer roles"], "Pereka Permainan"]]}, "S": {"title": {"ms": "Pulau Sosial — Gambaran Kerjaya", "en": "Social Island — Career Overview"}, "description": {"ms": "Kerjaya yang berfokus kepada membantu, mengajar, membimbing, berkomunikasi dan bekerja rapat dengan orang lain.", "en": "Careers focused on helping, teaching, guiding, communicating and working closely with other people."}, "careers": [["Teacher", "Education / people", ["SPM → Foundation / Matriculation / Diploma as an eligible entry route", "→ Bachelor of Education or relevant degree + recognised teacher-training route, depending on target institution", "→ Teaching practicum / required training", "→ Teaching career, subject to current appointment and qualification requirements"], "Guru"], ["Counsellor", "Guidance / people", ["SPM → Foundation / Diploma where accepted for entry", "→ Bachelor degree in Counselling or related recognised programme", "→ Practical training / supervised experience as required", "→ Counselling practice, subject to current requirements"], "Kaunselor"], ["Social Worker", "Community / support", ["SPM → Diploma / Foundation in Social Work or related social-science field", "→ Bachelor in Social Work or related field", "→ Field placement / community experience", "→ Social and community service roles"], "Pekerja Sosial"], ["Human Resources Executive", "People / workplace", ["SPM → Foundation / Diploma in Human Resources, Business or related field", "→ Bachelor in HR / Business / Management for a common graduate route", "→ Internship / workplace projects", "→ HR executive → specialist or management roles"], "Eksekutif Sumber Manusia"], ["Nurse", "Healthcare / patient care", ["SPM → Diploma in Nursing through an approved programme", "→ Clinical training / placements", "→ Nursing registration and other current requirements", "→ Registered nurse → further specialisation / degree study"], "Jururawat"], ["Speech-Language Therapist", "Communication / therapy", ["SPM → Foundation / Diploma where accepted for entry", "→ Bachelor in Speech-Language Therapy or related recognised programme", "→ Clinical placements / supervised practice", "→ Speech-language therapist role, subject to current registration requirements"], "Ahli Terapi Pertuturan-Bahasa"], ["Occupational Therapist", "Rehabilitation / therapy", ["SPM → Foundation / Diploma where accepted for entry", "→ Bachelor in Occupational Therapy or related recognised programme", "→ Clinical placements / supervised practice", "→ Occupational therapist role, subject to current registration requirements"], "Ahli Terapi Carakerja"], ["Community Development Officer", "Community / social programmes", ["SPM → Diploma / Foundation in Social Work, Community Development or related field", "→ Bachelor in a related social-science field for a common route", "→ Fieldwork / community project experience", "→ Community development officer → programme coordinator roles"], "Pegawai Pembangunan Komuniti"], ["Physiotherapist", "Rehabilitation / patient care", ["SPM → Foundation / Diploma where accepted for entry", "→ Bachelor in Physiotherapy or related recognised programme", "→ Clinical placements / supervised practice", "→ Physiotherapist role, subject to current registration requirements"], "Ahli Fisioterapi"], ["Early Childhood Educator", "Early education / childcare", ["SPM → Certificate / Diploma in Early Childhood Education", "→ Bachelor in Early Childhood Education for a common progression route", "→ Teaching practicum / supervised classroom experience", "→ Early childhood educator role, subject to current requirements"], "Pendidik Awal Kanak-Kanak"]]}, "E": {"title": {"ms": "Pulau Enterprising — Gambaran Kerjaya", "en": "Enterprising Island — Career Overview"}, "description": {"ms": "Kerjaya yang banyak melibatkan kepimpinan, perniagaan, jualan, rundingan, pengurusan dan membuat keputusan.", "en": "Careers that heavily involve leadership, business, sales, negotiation, management and decision-making."}, "careers": [["Entrepreneur", "Business / leadership", ["SPM → Certificate / Diploma / Foundation in Business or related field (optional)", "→ Business learning through study, projects and real-world experience", "→ Validate an idea + develop a business plan", "→ Launch and grow a business"], "Usahawan"], ["Marketing Executive", "Marketing / communication", ["SPM → Foundation / Diploma in Marketing, Business, Media or related field", "→ Bachelor in Marketing / Business / related field for a common graduate route", "→ Internship + campaign/project portfolio", "→ Marketing executive → specialist / manager"], "Eksekutif Pemasaran"], ["Sales Executive", "Sales / negotiation", ["SPM → Diploma / certificate in Business, Marketing or related field is one route", "→ Develop communication, product and customer skills", "→ Internship / entry-level sales experience", "→ Sales executive → account / business development roles"], "Eksekutif Jualan"], ["Business Development Executive", "Strategy / growth", ["SPM → Foundation / Diploma in Business, Management, Marketing or related field", "→ Bachelor in Business / Management / Marketing for a common route", "→ Internship + commercial projects", "→ Business development executive → senior / management roles"], "Eksekutif Pembangunan Perniagaan"], ["Project Manager", "Planning / leadership", ["SPM → Diploma / Foundation in Business, Management, IT, Engineering or relevant field", "→ Bachelor in a relevant discipline for a common route", "→ Gain project experience + learn project-management methods", "→ Project coordinator → project manager"], "Pengurus Projek"], ["Real Estate Agent", "Property / sales", ["SPM → Certificate / Diploma in Estate Management, Business or related field is one route", "→ Complete registration and licensing requirements set by the current real-estate authority", "→ Practical experience under a registered agency", "→ Real estate negotiator → licensed real estate agent"], "Ejen Hartanah"], ["Event Manager", "Events / coordination", ["SPM → Diploma / Foundation in Event Management, Hospitality or Business", "→ Bachelor in Event Management or related field if desired", "→ Internship / on-the-ground event experience", "→ Event coordinator → event manager"], "Pengurus Acara"], ["Management Consultant", "Strategy / advisory", ["SPM → Foundation / Diploma in Business, Economics or related field", "→ Bachelor in Business, Economics or a related analytical field", "→ Internship + case-study / analytical project experience", "→ Analyst → management consultant roles"], "Perunding Pengurusan"], ["Public Relations Executive", "Communications / media relations", ["SPM → Foundation / Diploma in Public Relations, Communication or Mass Media", "→ Bachelor in Public Relations / Communication for a common graduate route", "→ Internship + media / campaign portfolio", "→ PR executive → PR specialist / manager roles"], "Eksekutif Perhubungan Awam"], ["Investment / Financial Advisor", "Finance / advisory", ["SPM → Foundation / Diploma in Finance, Business or Economics", "→ Bachelor in Finance / Economics / Business for a common graduate route", "→ Obtain current licensing / certification required for financial advisory practice", "→ Financial advisor role, subject to current regulatory requirements"], "Penasihat Pelaburan / Kewangan"]]}, "C": {"title": {"ms": "Pulau Konvensional — Gambaran Kerjaya", "en": "Conventional Island — Career Overview"}, "description": {"ms": "Kerjaya yang menekankan ketepatan, rekod, data, prosedur, organisasi dan pengurusan maklumat.", "en": "Careers that emphasise accuracy, records, data, procedures, organisation and information management."}, "careers": [["Accountant", "Finance / records", ["SPM → Foundation / Diploma in Accounting or related field", "→ Bachelor of Accounting / relevant accounting degree for a common route", "→ Practical experience + current professional requirements", "→ Accounting roles → professional qualification / specialisation where applicable"], "Akauntan"], ["Administrative Executive", "Organisation / office", ["SPM → Certificate / Diploma in Business Administration, Office Management or related field", "→ Bachelor in Business / Management as an optional progression", "→ Internship / office experience", "→ Administrative executive → senior administration / operations"], "Eksekutif Pentadbiran"], ["Banking Executive", "Finance / customer service", ["SPM → Foundation / Diploma in Banking, Finance, Business or related field", "→ Bachelor in Finance / Banking / Business for a common graduate route", "→ Internship / banking experience", "→ Banking executive → specialist / management roles"], "Eksekutif Perbankan"], ["Auditor", "Compliance / analysis", ["SPM → Foundation / Diploma in Accounting or related field", "→ Bachelor in Accounting / relevant degree", "→ Audit internship / practical experience", "→ Audit role → further professional qualification where required"], "Juruaudit"], ["Records / Information Officer", "Information / organisation", ["SPM → Diploma in Records Management, Information Management, Library / Information Science or related field", "→ Bachelor in a related information-management field for further progression", "→ Internship / information-system experience", "→ Records / information management roles"], "Pegawai Rekod / Maklumat"], ["Logistics Coordinator", "Supply chain / logistics", ["SPM → Diploma / Foundation in Logistics, Supply Chain Management or Business", "→ Bachelor in Logistics / Supply Chain Management if desired", "→ Internship / warehouse or freight operations experience", "→ Logistics coordinator → supply chain executive roles"], "Penyelaras Logistik"], ["Payroll Executive", "HR / payroll administration", ["SPM → Certificate / Diploma in Accounting, HR or Business Administration", "→ Bachelor in a related field as an optional progression", "→ Internship / payroll systems experience", "→ Payroll executive → payroll manager roles"], "Eksekutif Gaji"], ["Insurance Underwriter", "Risk assessment / insurance", ["SPM → Foundation / Diploma in Insurance, Actuarial Science, Business or Finance", "→ Bachelor in a related field for a common graduate route", "→ Insurance industry training + internship", "→ Underwriting assistant → insurance underwriter"], "Underwriter Insurans"], ["Procurement Executive", "Purchasing / vendor management", ["SPM → Diploma / Foundation in Business, Supply Chain or Purchasing Management", "→ Bachelor in Business / Supply Chain Management if desired", "→ Internship / procurement or vendor-management experience", "→ Procurement executive → procurement manager roles"], "Eksekutif Perolehan"], ["Quality Assurance Officer", "Quality control / compliance", ["SPM → Certificate / Diploma in Quality Management, Engineering or a related technical field", "→ Bachelor in a related field as an optional progression", "→ QA / QC practical training or internship", "→ Quality assurance officer → quality manager roles"], "Pegawai Jaminan Kualiti"]]}};
 const careerModal=document.getElementById('career-modal');
@@ -878,15 +922,111 @@ function closeCareerOverview(){
 document.querySelectorAll('.overview-btn').forEach(btn=>btn.addEventListener('click',e=>{
  e.stopPropagation(); openCareerOverview(btn.closest('.island-node').dataset.type);
 }));
+
+const minigameData = {
+ R: [
+  {title:'Automotive EV Technician', description:'Diagnose an electric vehicle in the EV Diagnostic Bay.', file:'Game_-_Automotive_EV_Technician_—_EV_Diagnostic_Bay_from_the__1790043405290.html'},
+  {title:'Civil & Structural Engineer', description:'Test a bridge design and keep the structure within safe limits.', file:'Game_-_Civil_Structural_Engineer_—_Bridge_Stress_from_Realist_1790043405291.html'}
+ ],
+ I: [
+  {title:'Medical Laboratory Technologist', description:'Identify a pathogen by reading evidence from a virtual lab.', file:'Game_-_Medical_Laboratory_Technologist_—_3D_Pathogen_Identifi_1790043395613.html'},
+  {title:'Data Scientist', description:'Investigate an anomaly core and find the signal in the data.', file:'Game_-_Data_Scientist_—_3D_Anomaly_Core_from_the_Investigativ_1790043395613.html'}
+ ],
+ A: [
+  {title:'3D Game Animator', description:'Match a character pose by tuning the rigged joints.', file:'Game_-_3D_Game_Animator_—_Rigged_Pose_Matcher_from_art_1790043395611.html'},
+  {title:'UI/UX Designer', description:'Build a clearer interface and pass the accessibility audit.', file:'Game_-_UIUX_Designer_—_Spatial_App_Studio_From_Art_1790043395612.html'}
+ ],
+ S: [
+  {title:'EMT Paramedic', description:'Assess a 3D triage scene and choose the right care priorities.', file:'Game_-_3D_Triage_Scene._from_social_1790043395609.html'},
+  {title:'Guidance Counsellor', description:'Navigate a dialogue and respond with empathy and clarity.', file:'Game_-_Guidance_Counsellor_—_Dialogue_Dynamics_from_social_1790043395610.html'}
+ ],
+ E: [
+  {title:'Marketing Specialist', description:'Build a campaign that balances reach, budget and impact.', file:'Game_-_Marketing_Specialist_—_Campaign_Arena._from_enterprici_1790043395605.html'},
+  {title:'Startup Founder', description:'Make growth decisions while managing capital burn rate.', file:'Game_-_Startup_Founder_—_Capital_Burn_Rate._from_enterpricing_1790043395606.html'}
+ ],
+ C: [
+  {title:'Logistics Coordinator', description:'Plan a reliable route network across the island.', file:'Game_-_Logistics_Coordinator_—_Route_Network._from_convention_1790043395599.html'},
+  {title:'Forensic Accountant', description:'Inspect a 3D ledger and uncover the accounting discrepancy.', file:'Game_-_Forensic_Accountant_—_3D_Ledger_Inspector._from_conven_1790043395604.html'}
+ ]
+};
+
+const minigameModal=document.getElementById('minigame-modal');
+const minigameList=document.getElementById('minigame-list');
+const minigameModalTitle=document.getElementById('minigame-modal-title');
+const minigameModalDescription=document.getElementById('minigame-modal-description');
+const minigameFrameWrap=document.getElementById('minigame-frame-wrap');
+const minigameFrame=document.getElementById('minigame-frame');
+const minigameCurrentTitle=document.getElementById('minigame-current-title');
+
+function showMinigameList(){
+ minigameFrame.src='about:blank';
+ minigameFrameWrap.classList.remove('open');
+ minigameList.style.display='grid';
+}
+
+function launchMinigame(game){
+ minigameList.style.display='none';
+ minigameFrameWrap.classList.add('open');
+ minigameCurrentTitle.textContent=game.title;
+ minigameFrame.title=game.title+' mini game';
+ minigameFrame.src=encodeURI(game.file);
+}
+
+function openMinigames(type){
+ const games=minigameData[type] || [];
+ const island=islands.find(node=>node.dataset.type===type);
+ const islandName=island ? island.querySelector('.island-title').textContent : type;
+ const isMalay=currentLang==='ms';
+ minigameModalTitle.textContent=isMalay ? islandName+' — Permainan Mini' : islandName+' — Mini Games';
+ minigameModalDescription.textContent=isMalay ? 'Pilih simulasi kerjaya untuk dimainkan.' : 'Choose a career simulation to play.';
+ minigameList.innerHTML='';
+ games.forEach(game=>{
+  const card=document.createElement('article');
+  card.className='minigame-card';
+  const copy=document.createElement('div');
+  copy.className='minigame-card-copy';
+  const title=document.createElement('h3');
+  title.textContent=game.title;
+  const description=document.createElement('p');
+  description.textContent=game.description;
+  copy.append(title,description);
+  const play=document.createElement('button');
+  play.type='button';
+  play.className='minigame-play';
+  play.textContent=isMalay ? 'Main sekarang' : 'Play now';
+  play.addEventListener('click',()=>launchMinigame(game));
+  card.append(copy,play);
+  minigameList.appendChild(card);
+ });
+ showMinigameList();
+ minigameModal.classList.add('open');
+ minigameModal.setAttribute('aria-hidden','false');
+}
+
+function closeMinigames(){
+ minigameModal.classList.remove('open');
+ minigameModal.setAttribute('aria-hidden','true');
+ showMinigameList();
+}
+
 document.querySelectorAll('.minigame-btn').forEach(btn=>btn.addEventListener('click',e=>{
- e.stopPropagation(); alert(currentLang === 'ms' ? '🎮 Permainan Mini akan datang!' : '🎮 Mini Game coming soon!');
+ e.stopPropagation();
+ openMinigames(btn.closest('.island-node').dataset.type);
 }));
+document.getElementById('minigame-close').addEventListener('click',closeMinigames);
+document.getElementById('minigame-back').addEventListener('click',showMinigameList);
+minigameModal.addEventListener('click',e=>{if(e.target===minigameModal)closeMinigames();});
+
 document.getElementById('career-close').addEventListener('click',closeCareerOverview);
 document.getElementById('career-back').addEventListener('click',()=>{
  routeView.classList.remove('open'); careerListView.style.display='block';
 });
 careerModal.addEventListener('click',e=>{if(e.target===careerModal)closeCareerOverview();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCareerOverview();});
+document.addEventListener('keydown',e=>{
+ if(e.key!=='Escape') return;
+ if(minigameModal.classList.contains('open')) closeMinigames();
+ else closeCareerOverview();
+});
 
 // ---- AI chat: "ask about this career" ----
 const careerChat=document.getElementById('career-chat');
