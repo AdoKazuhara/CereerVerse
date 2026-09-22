@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selamat Datang ke CareerVerse (Dunia RIASEC)</title>
+    <style>
+        :root {
+            --sky-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            --card-glass: rgba(255, 255, 255, 0.07);
+            --border-glass: rgba(255, 255, 255, 0.15);
+            --text-main: #f8fafc;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--sky-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        header {
+            text-align: center;
+            padding: 3rem 1rem 1rem 1rem;
+        }
+        header h1 {
+            font-size: 3.5rem;
+            margin: 0;
+            letter-spacing: 6px;
+            background: linear-gradient(to right, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+        }
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+        .universe-map {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem;
+            max-width: 1100px;
+            width: 90%;
+            padding: 3rem 1rem;
+            perspective: 1200px;
+        }
+        .island-node {
+            background: var(--card-glass);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--border-glass);
+            border-radius: 24px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transform: rotateX(12deg) translateZ(0);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .island-node:hover {
+            transform: rotateX(0deg) scale(1.06) translateY(-15px);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 30px 60px rgba(56, 189, 248, 0.25);
+        }
+        .island-letter {
+            font-size: 4.5rem;
+            font-weight: 900;
+            margin-bottom: 0.25rem;
+            display: inline-block;
+            animation: islandFloat 4s ease-in-out infinite alternate;
+        }
+        .island-node[data-type="R"] .island-letter { color: #f87171; text-shadow: 0 0 25px rgba(248,113,113,0.4); }
+        .island-node[data-type="I"] .island-letter { color: #38bdf8; text-shadow: 0 0 25px rgba(56,189,248,0.4); }
+        .island-node[data-type="A"] .island-letter { color: #f472b6; text-shadow: 0 0 25px rgba(244,114,182,0.4); }
+        .island-node[data-type="S"] .island-letter { color: #4ade80; text-shadow: 0 0 25px rgba(74,222,128,0.4); }
+        .island-node[data-type="E"] .island-letter { color: #fbbf24; text-shadow: 0 0 25px rgba(251,191,36,0.4); }
+        .island-node[data-type="C"] .island-letter { color: #a78bfa; text-shadow: 0 0 25px rgba(167,139,250,0.4); }
+        .island-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            letter-spacing: 1px;
+        }
+        .island-tagline {
+            font-size: 0.95rem;
+            opacity: 0.75;
+            line-height: 1.4;
+        }
+        .hud-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .hud-modal {
+            background: #1e293b;
+            border: 2px solid #475569;
+            border-radius: 32px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 85%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .hud-modal h2 {
+            font-size: 2.2rem;
+            margin-top: 0;
+        }
+        .hud-description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            margin-bottom: 2rem;
+        }
+        .action-container {
+            background: #0f172a;
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            border: 1px solid #334155;
+        }
+        .close-hud-btn {
+            background: #64748b;
+            color: white;
+            border: none;
+            padding: 0.8rem 2.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .close-hud-btn:hover {
+            background: #475569;
+        }
+        @keyframes islandFloat {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-12px); }
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @media (max-width: 900px) {
+            .universe-map { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .universe-map { grid-template-columns: 1fr; }
+            header h1 { font-size: 2.5rem; }
+        }
+
+/* 2D animated scenes */
+.universe-map{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;max-width:1150px;width:92%;padding:2rem 1rem 4rem}
+.island-node{min-height:390px;padding:0;overflow:hidden;background:rgba(15,23,42,.78);border:1px solid rgba(255,255,255,.18);border-radius:28px;text-align:center;cursor:pointer;position:relative;transition:.35s;box-shadow:0 20px 45px rgba(0,0,0,.38)}
+.island-node:hover{transform:translateY(-12px) scale(1.025);border-color:rgba(255,255,255,.55);box-shadow:0 30px 70px rgba(56,189,248,.25)}
+.scene{height:245px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.scene-r{background:linear-gradient(#4c1d24,#7c2d12 55%,#292524)}.scene-i{background:linear-gradient(#082f49,#164e63 55%,#172554)}.scene-a{background:linear-gradient(#4a044e,#831843 55%,#312e81)}.scene-s{background:linear-gradient(#064e3b,#166534 55%,#14532d)}.scene-e{background:linear-gradient(#451a03,#92400e 55%,#422006)}.scene-c{background:linear-gradient(#312e81,#4338ca 55%,#1e1b4b)}
+.ground{position:absolute;bottom:0;width:120%;height:48px;background:rgba(0,0,0,.28);border-radius:50% 50% 0 0}
+.character{position:absolute;font-size:5rem;bottom:30px;animation:bob 2s ease-in-out infinite alternate;filter:drop-shadow(0 8px 8px rgba(0,0,0,.35))}
+.workshop{position:absolute;font-size:6rem;left:22px;bottom:38px;animation:pulse 3s infinite}.tool{position:absolute;right:55px;top:45px;font-size:3rem;animation:spin 3s infinite}
+.moon{position:absolute;right:45px;top:30px;font-size:3rem;animation:float 3s infinite alternate}
+.orb{position:absolute;border:2px solid #7dd3fc;border-radius:50%;animation:float 3s infinite alternate}.orb-a{width:90px;height:90px;left:35px;top:35px}.orb-b{width:45px;height:45px;right:50px;top:80px;animation-delay:1s}
+.lab{position:absolute;font-size:5rem;left:38px;bottom:32px;animation:float 2.5s infinite alternate}.scientist{right:70px}.data-stream{position:absolute;right:15px;top:22px;font:700 12px monospace;color:#7dd3fc;line-height:1.6;animation:blink 1.5s infinite}
+.paint{position:absolute;border-radius:50%;animation:paint 3s infinite alternate}.paint-a{width:100px;height:65px;background:#fb7185;left:25px;top:30px}.paint-b{width:80px;height:90px;background:#38bdf8;right:25px;top:45px;animation-delay:.8s}
+.canvas{position:absolute;font-size:5rem;left:55px;bottom:35px}.artist{right:60px}.brush{position:absolute;right:40px;top:25px;font-size:3.5rem;animation:brush 2s infinite alternate}.sparkles{position:absolute;top:18px;color:#fef08a;font-size:1.6rem;animation:sparkle 1.7s infinite}
+.heart{position:absolute;top:25px;font-size:4rem;color:#fb7185;animation:heart 1.5s infinite}.person-a{left:65px}.person-b{right:65px}.speech{position:absolute;right:32px;top:30px;font-size:3rem;animation:float 2s infinite}.plus{position:absolute;left:30px;top:55px;font-size:3rem;color:#86efac;animation:spin 2.5s infinite}
+.chart{position:absolute;left:25px;bottom:55px;display:flex;gap:7px;align-items:flex-end;height:100px}.chart span{width:20px;background:#fbbf24;border-radius:5px 5px 0 0;animation:grow 1.8s infinite alternate}.chart span:nth-child(1){height:40px}.chart span:nth-child(2){height:70px;animation-delay:.25s}.chart span:nth-child(3){height:100px;animation-delay:.5s}
+.presentation{position:absolute;top:25px;left:50%;font-size:4rem;animation:float 2s infinite alternate}.leader{right:55px}.rocket{position:absolute;right:25px;top:30px;font-size:3rem;animation:rocket 3s infinite}
+.folders{position:absolute;top:28px;font-size:2.4rem;animation:float 2.4s infinite alternate}.computer{position:absolute;left:35px;bottom:35px;font-size:5rem}.clerk{right:65px;bottom:35px}.numbers{position:absolute;right:25px;top:65px;font:700 14px monospace;color:#c4b5fd;line-height:1.4;animation:blink 1.2s infinite}
+.island-letter{font-size:3.2rem;font-weight:900;margin-top:-5px}.island-node[data-type="R"] .island-letter{color:#f87171}.island-node[data-type="I"] .island-letter{color:#38bdf8}.island-node[data-type="A"] .island-letter{color:#f472b6}.island-node[data-type="S"] .island-letter{color:#4ade80}.island-node[data-type="E"] .island-letter{color:#fbbf24}.island-node[data-type="C"] .island-letter{color:#a78bfa}
+.island-title{font-size:1.45rem;font-weight:800;margin:.1rem 0 .25rem}.island-tagline{font-size:.88rem;opacity:.65;margin-bottom:1.2rem}
+.hud-modal{position:relative;max-width:700px;padding:1.5rem 2rem 2rem}.modal-x{position:absolute;right:20px;top:15px;background:none;border:0;color:#fff;font-size:2rem;cursor:pointer;z-index:5}.modal-scene{height:180px;border-radius:22px;overflow:hidden;margin-bottom:1rem}.modal-scene .scene{height:180px}.mission-btn{margin-top:1rem;padding:.8rem 1.5rem;border:0;border-radius:999px;background:#38bdf8;color:#082f49;font-weight:800;cursor:pointer}
+@keyframes bob{to{transform:translateY(-10px)}}@keyframes pulse{50%{transform:scale(1.05)}}@keyframes spin{50%{transform:translateY(-10px) rotate(15deg)}}@keyframes float{to{transform:translateY(-14px)}}@keyframes blink{50%{opacity:.3}}@keyframes paint{50%{transform:translateY(-12px) rotate(8deg)}}@keyframes brush{to{transform:rotate(25deg) translateY(12px)}}@keyframes sparkle{50%{transform:scale(1.35);opacity:.45}}@keyframes heart{50%{transform:scale(1.18)}}@keyframes grow{to{transform:scaleY(1.15);transform-origin:bottom}}@keyframes rocket{50%{transform:translate(12px,-18px) rotate(-8deg)}}
+@media(max-width:900px){.universe-map{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.universe-map{grid-template-columns:1fr;width:88%}}
+
+
+/* ===== WELCOME / START SCREEN ===== */
+.welcome-screen{
+    position:fixed;inset:0;z-index:500;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 35%,rgba(56,189,248,.18),transparent 30%),
+      radial-gradient(circle at 20% 80%,rgba(192,132,252,.14),transparent 30%),
+      linear-gradient(135deg,#020617,#0f172a 50%,#1e1b4b);
+    transition:opacity .7s ease,transform .7s ease;
+}
+.welcome-screen.hidden{opacity:0;transform:scale(1.08);pointer-events:none}
+.welcome-stars{position:absolute;top:12%;font-size:1.5rem;color:#bae6fd;letter-spacing:18px;animation:welcomeTwinkle 2.5s infinite}
+.welcome-orbit{position:relative;width:180px;height:150px;margin-bottom:10px}
+.welcome-planet{
+    position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);
+    font-size:7rem;filter:drop-shadow(0 0 35px rgba(56,189,248,.5));
+    animation:planetFloat 3s ease-in-out infinite alternate;
+}
+.welcome-character{
+    position:absolute;right:0;top:0;font-size:3rem;
+    animation:astronautOrbit 4s ease-in-out infinite;
+}
+.welcome-content{max-width:680px;padding:0 25px}
+.welcome-kicker{font-size:.85rem;letter-spacing:5px;font-weight:800;color:#7dd3fc;margin-bottom:.3rem}
+.welcome-content h2{
+    margin:0;font-size:clamp(4rem,10vw,7rem);font-weight:1000;letter-spacing:3px;
+    background:linear-gradient(90deg,#38bdf8,#818cf8,#e879f9);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 8px 25px rgba(56,189,248,.2));
+}
+.welcome-content p{font-size:1.15rem;line-height:1.6;color:#cbd5e1;margin:1rem auto 2rem;max-width:580px}
+.start-btn{
+    border:0;border-radius:999px;padding:1rem 2.2rem;
+    background:linear-gradient(90deg,#38bdf8,#818cf8);color:white;
+    font-size:1rem;font-weight:900;letter-spacing:.7px;cursor:pointer;
+    box-shadow:0 10px 35px rgba(56,189,248,.3);
+    transition:transform .2s,box-shadow .2s;
+}
+.start-btn:hover{transform:translateY(-4px) scale(1.04);box-shadow:0 15px 45px rgba(129,140,248,.45)}
+
+/* ===== ISLAND FOCUS MODE ===== */
+.universe-map.focus-mode .island-node:not(.selected){
+    display:none;
+}
+.universe-map.focus-mode{
+    grid-template-columns:1fr;
+    max-width:850px;
+}
+.universe-map.focus-mode .island-node.selected{
+    display:block;
+    min-height:560px;
+}
+.universe-map.focus-mode .island-node.selected .scene{
+    height:380px;
+}
+.universe-map.focus-mode .island-node.selected .island-letter{
+    font-size:4.5rem;
+}
+.universe-map.focus-mode .island-node.selected .island-title{
+    font-size:2rem;
+}
+.universe-map.focus-mode .island-node.selected .island-tagline{
+    font-size:1rem;
+}
+.back-map-btn{
+    display:none;
+    position:fixed;z-index:80;top:25px;left:25px;
+    border:1px solid rgba(255,255,255,.25);border-radius:999px;
+    background:rgba(15,23,42,.85);backdrop-filter:blur(12px);
+    color:white;padding:.8rem 1.3rem;font-weight:800;cursor:pointer;
+    box-shadow:0 10px 25px rgba(0,0,0,.3);
+}
+.back-map-btn:hover{background:#334155;transform:translateY(-2px)}
+.back-map-btn.visible{display:block}
+
+@keyframes welcomeTwinkle{50%{opacity:.35;transform:scale(.9)}}
+@keyframes planetFloat{to{transform:translate(-50%,-58%) rotate(5deg)}}
+@keyframes astronautOrbit{0%,100%{transform:translate(15px,8px) rotate(-8deg)}50%{transform:translate(-12px,-8px) rotate(12deg)}}
+
+
+.island-actions{display:none;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:18px;padding:0 20px 28px}
+.focus-mode .island-node.selected .island-actions{display:flex}
+.career-action-btn{border:1px solid rgba(255,255,255,.28);background:rgba(8,12,28,.86);color:#fff;padding:12px 18px;border-radius:14px;font-weight:800;cursor:pointer;backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,.25);transition:.2s}
+.career-action-btn:hover{transform:translateY(-2px);background:rgba(35,45,80,.95)}
+.career-modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(2,5,18,.76);backdrop-filter:blur(12px)}
+.career-modal.open{display:flex}.career-panel{width:min(980px,100%);max-height:88vh;overflow:auto;background:linear-gradient(145deg,rgba(20,27,52,.98),rgba(8,12,28,.98));border:1px solid rgba(255,255,255,.15);border-radius:26px;padding:28px;color:#fff;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+.career-panel-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:20px}.career-panel h2{margin:0 0 7px;font-size:clamp(26px,4vw,42px)}.career-panel p{color:rgba(255,255,255,.72);line-height:1.6;margin:0}.career-lang-note{margin-top:8px!important;font-size:12.5px;font-style:italic;color:rgba(255,255,255,.5)!important}.career-close{border:0;background:rgba(255,255,255,.1);color:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:22px}
+.career-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.career-card{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);border-radius:18px;padding:18px;cursor:pointer;text-align:left;color:#fff;transition:.2s}.career-card:hover{transform:translateY(-3px);background:rgba(255,255,255,.09)}.career-card h3{margin:0 0 2px;font-size:18px}.career-name-ms{font-size:12.5px;font-style:italic;color:rgba(255,255,255,.5);margin-bottom:7px}.career-card span{color:rgba(255,255,255,.62);font-size:13px;line-height:1.45}
+ .route-view{display:none}.route-view.open{display:block}.career-back{border:0;background:transparent;color:#b9c8ff;cursor:pointer;padding:0;margin-bottom:16px;font-weight:800}.route-title{margin:0 0 2px;font-size:28px}.route-title-ms{margin:0 0 8px!important;font-size:14px;font-style:italic;color:rgba(255,255,255,.5)!important}.route-steps{display:grid;gap:12px;margin-top:20px}.route-step{border:1px solid rgba(255,255,255,.1);border-radius:15px;background:rgba(255,255,255,.045);overflow:hidden;transition:border-color .2s,background .2s,box-shadow .2s}.route-step:hover,.route-step:has(.route-step-trigger[aria-expanded="true"]){border-color:rgba(185,200,255,.42);background:rgba(255,255,255,.075);box-shadow:0 8px 24px rgba(0,0,0,.14)}.route-step-trigger{width:100%;display:grid;grid-template-columns:42px 1fr 28px;gap:14px;align-items:center;padding:15px;border:0;background:transparent;color:#fff;text-align:left;cursor:pointer;font:inherit}.route-step-trigger:focus-visible{outline:2px solid #7dd3fc;outline-offset:-3px}.route-number{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(125,145,255,.2);font-weight:900}.route-step h4{margin:0 0 4px}.route-step-summary{display:block;font-size:14px;line-height:1.55;color:rgba(255,255,255,.82)}.route-chevron{font-size:22px;color:#b9c8ff;text-align:center;transition:transform .2s}.route-step-trigger[aria-expanded="true"] .route-chevron{transform:rotate(180deg)}.route-step-details{padding:0 18px 18px 71px}.route-step-details[hidden]{display:none}.route-step-details p{font-size:14px;line-height:1.6}.route-detail-intro{margin:0 0 13px;color:rgba(255,255,255,.78)}.route-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.route-detail-box{padding:12px 14px;border-radius:12px;background:rgba(8,12,28,.38);border:1px solid rgba(255,255,255,.08)}.route-detail-box strong{display:block;margin-bottom:4px;color:#c4b5fd;font-size:13px}.route-detail-box p{margin:0;color:rgba(255,255,255,.7);font-size:13px}.route-note{margin-top:18px!important;padding:14px 16px;border-left:3px solid rgba(185,200,255,.7);background:rgba(255,255,255,.045);border-radius:10px}
+.career-chat{display:none;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.12)}
+.career-chat h4{margin:0 0 10px;font-size:16px;color:#fff}
+.chat-thread{max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px;padding-right:4px}
+.chat-bubble{padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.5;max-width:88%;white-space:pre-wrap}
+.chat-bubble.user{align-self:flex-end;background:rgba(56,189,248,.22);border:1px solid rgba(56,189,248,.35);color:#fff}
+.chat-bubble.assistant{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#e2e8f0}
+.chat-form{display:flex;gap:10px}
+.chat-form input{flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:#fff;font-size:14px}
+.chat-form input::placeholder{color:rgba(255,255,255,.45)}
+.chat-form button{border:0;border-radius:12px;padding:12px 18px;background:#38bdf8;color:#082f49;font-weight:800;cursor:pointer}
+.chat-form button:disabled{opacity:.5;cursor:default}
+ .minigame-modal{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(2,5,18,.82);backdrop-filter:blur(12px)}
+ .minigame-modal.open{display:flex}
+ .minigame-panel{width:min(1120px,100%);height:min(88vh,820px);display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(145deg,rgba(8,112,145,.99),rgba(6,78,99,.99));border:1px solid rgba(255,255,255,.24);border-radius:26px;color:#fff;box-shadow:0 24px 80px rgba(0,0,0,.5)}
+ .minigame-header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:24px 28px 18px;border-bottom:1px solid rgba(255,255,255,.14)}
+ .minigame-header h2{margin:0 0 6px;font-size:clamp(24px,4vw,38px)}
+ .minigame-header p{margin:0;color:rgba(255,255,255,.72);line-height:1.5}
+ .minigame-close{border:0;background:rgba(255,255,255,.12);color:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:22px;flex:0 0 auto}
+ .minigame-close:hover{background:rgba(255,255,255,.22)}
+ .minigame-body{min-height:0;flex:1;overflow:auto;padding:22px 28px 28px}
+ .minigame-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+ .minigame-card{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(255,255,255,.08)}
+ .minigame-card-copy{min-width:0}.minigame-card h3{margin:0 0 5px;font-size:18px}.minigame-card p{margin:0;color:rgba(255,255,255,.65);font-size:13px;line-height:1.45}
+ .minigame-play{border:0;border-radius:12px;padding:11px 15px;background:#fde68a;color:#164e63;font-weight:900;cursor:pointer;white-space:nowrap}
+ .minigame-play:hover{transform:translateY(-2px);background:#fff}
+ .minigame-frame-wrap{display:none;height:100%;min-height:0;flex-direction:column;gap:12px}
+ .minigame-frame-wrap.open{display:flex}
+ .minigame-frame-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+ .minigame-back{border:1px solid rgba(255,255,255,.28);border-radius:12px;padding:10px 14px;background:rgba(255,255,255,.08);color:#fff;font-weight:800;cursor:pointer}
+ .minigame-back:hover{background:rgba(255,255,255,.16)}
+ .minigame-current-title{font-weight:900;color:#fde68a}
+ .minigame-frame{width:100%;height:100%;min-height:520px;border:0;border-radius:18px;background:#050816}
+ @media(max-width:700px){.minigame-modal{padding:10px}.minigame-panel{height:94vh;border-radius:20px}.minigame-header{padding:18px 18px 14px}.minigame-body{padding:16px}.minigame-list{grid-template-columns:1fr}.minigame-card{align-items:flex-start;flex-direction:column}.minigame-play{width:100%}.minigame-frame{min-height:460px}}
+ @media(max-width:600px){.island-actions{padding:0 14px 20px}.career-action-btn{padding:10px 13px;font-size:13px}.career-panel{padding:20px;border-radius:20px}.route-step-details{padding-left:18px}.route-detail-grid{grid-template-columns:1fr}}
+
+
+.language-screen{
+  position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 35%,rgba(62,76,150,.35),transparent 45%),#050816;
+  color:#fff;text-align:center;transition:opacity .6s ease,visibility .6s ease;
+}
+.language-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.language-stars{
+  position:absolute;inset:0;opacity:.7;
+  background-image:radial-gradient(circle,rgba(255,255,255,.8) 1px,transparent 1.5px);
+  background-size:70px 70px;
+}
+.language-content{position:relative;z-index:1;padding:30px}
+.language-kicker{font-size:13px;letter-spacing:5px;opacity:.65;margin-bottom:10px}
+.language-content h1{font-size:clamp(48px,8vw,86px);margin:0 0 18px;font-weight:900}
+.language-question{font-size:24px;line-height:1.45;margin:0 0 30px}
+.language-question span{font-size:18px;opacity:.65}
+.language-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.language-btn{
+  min-width:190px;padding:16px 24px;border:1px solid rgba(255,255,255,.22);
+  border-radius:16px;background:rgba(255,255,255,.08);color:#fff;font-size:17px;
+  font-weight:800;cursor:pointer;backdrop-filter:blur(10px);transition:transform .2s,background .2s;
+}
+.language-btn:hover{transform:translateY(-3px);background:rgba(255,255,255,.16)}
+@media(max-width:600px){.language-buttons{flex-direction:column}.language-btn{width:100%}}
+
+
+.map-back-btn{
+  display:none;
+  position:fixed;
+  top:24px;
+  left:24px;
+  z-index:500;
+  border:1px solid rgba(255,255,255,.25);
+  background:rgba(8,12,28,.88);
+  color:#fff;
+  padding:12px 18px;
+  border-radius:14px;
+  font-weight:800;
+  cursor:pointer;
+  backdrop-filter:blur(10px);
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+}
+.map-back-btn.show{display:block}
+.map-back-btn:hover{background:rgba(35,45,80,.95);transform:translateY(-2px)}
+@media(max-width:600px){.map-back-btn{top:14px;left:14px;padding:10px 14px;font-size:13px}}
+
+ /* ===== TROPICAL ISLAND THEME ===== */
+ :root{
+   --sky-bg:linear-gradient(180deg,#7dd3fc 0%,#bae6fd 42%,#fef3c7 100%);
+   --card-glass:rgba(7,89,133,.72);
+   --border-glass:rgba(255,255,255,.42);
+   --text-main:#fff;
+ }
+ body{
+   background:
+     radial-gradient(ellipse at 15% 12%,rgba(255,255,255,.75) 0 4%,transparent 12%),
+     radial-gradient(ellipse at 85% 18%,rgba(255,255,255,.58) 0 3%,transparent 11%),
+     linear-gradient(180deg,#7dd3fc 0%,#bae6fd 46%,#fcdca4 100%);
+ }
+ header{position:relative;z-index:2}
+  header.page-header-hidden{
+    opacity:0;transform:translateY(-20px);height:0;padding:0;
+    overflow:hidden;pointer-events:none;transition:opacity .45s ease,transform .45s ease,height .45s ease,padding .45s ease;
+  }
+ header h1{
+   text-shadow:0 3px 0 rgba(8,47,73,.18);
+   background:linear-gradient(90deg,#0f766e,#0284c7 48%,#ea580c);
+   -webkit-background-clip:text;background-clip:text;
+ }
+ .brand-mascot{
+   width:76px;height:58px;object-fit:contain;vertical-align:middle;
+   margin:-12px 8px 0 0;filter:drop-shadow(0 8px 8px rgba(8,47,73,.25));
+ }
+ .universe-map{position:relative;z-index:1}
+ .universe-map{perspective:none}
+ .island-node{
+   background:linear-gradient(160deg,rgba(8,112,145,.9),rgba(6,78,99,.88));
+   border-color:rgba(255,255,255,.42);
+   transform:none;
+   box-shadow:0 20px 45px rgba(8,47,73,.28);
+ }
+ .island-node:hover{
+   border-color:#fde68a;
+   box-shadow:0 30px 70px rgba(8,112,145,.35);
+ }
+ .scene{background:#38bdf8}
+ .scene-r{background:linear-gradient(#7dd3fc 0 48%,#38bdf8 49% 72%,#0e7490 73%)}
+ .scene-i{background:linear-gradient(#bae6fd 0 48%,#22d3ee 49% 72%,#0e7490 73%)}
+ .scene-a{background:linear-gradient(#f9a8d4 0 48%,#38bdf8 49% 72%,#0e7490 73%)}
+ .scene-s{background:linear-gradient(#86efac 0 48%,#2dd4bf 49% 72%,#0e7490 73%)}
+ .scene-e{background:linear-gradient(#fde68a 0 48%,#38bdf8 49% 72%,#0e7490 73%)}
+ .scene-c{background:linear-gradient(#c4b5fd 0 48%,#38bdf8 49% 72%,#0e7490 73%)}
+ .ground{
+   height:62px;background:#d6a15d;
+   box-shadow:0 -8px 0 rgba(253,230,138,.55);
+ }
+ .island-sand{
+   position:absolute;bottom:24px;left:50%;width:190px;height:62px;
+   transform:translateX(-50%);background:#f8d58b;border-radius:50%;
+   box-shadow:0 7px 0 rgba(180,83,9,.25);
+ }
+ .sun{position:absolute;right:38px;top:24px;font-size:3rem;animation:float 3s infinite alternate}
+ .cloud{position:absolute;left:25px;top:24px;font-size:3.2rem;opacity:.82;animation:float 4s infinite alternate}
+ .palm{position:absolute;left:24px;bottom:35px;font-size:5.2rem;z-index:2;animation:palmSway 3s infinite alternate}
+ .boat{position:absolute;right:34px;bottom:61px;font-size:3.2rem;animation:boatBob 2.5s infinite alternate}
+ .telescope{position:absolute;right:34px;top:44px;font-size:3rem;animation:float 2.8s infinite alternate}
+ .specimen{position:absolute;left:30px;top:34px;font-size:3.1rem;animation:pulse 3s infinite}
+ .shell{position:absolute;right:30px;bottom:58px;font-size:2.8rem;animation:float 2.5s infinite alternate}
+ .bird-badge{
+   position:absolute;right:18px;top:18px;width:76px;height:56px;object-fit:contain;
+   filter:drop-shadow(0 5px 4px rgba(8,47,73,.3));animation:birdGlide 3.5s ease-in-out infinite;
+ }
+ .island-mascot{
+   position:absolute;left:50%;bottom:30px;width:138px;height:106px;object-fit:contain;
+    z-index:20;transform:translateX(-50%) rotate(-3deg);
+    mix-blend-mode:normal;opacity:1;
+    filter:saturate(1.2) contrast(1.08) drop-shadow(0 8px 5px rgba(8,47,73,.28));
+   animation:mascotBob 2.4s ease-in-out infinite alternate;
+ }
+  .mascot-prop{position:absolute;z-index:21;font-size:2.5rem;filter:drop-shadow(0 4px 3px rgba(8,47,73,.25));animation:propFloat 2.2s ease-in-out infinite alternate}
+ .mascot-tools{right:32px;bottom:77px}
+ .mascot-science{right:26px;bottom:78px}
+ .mascot-art{right:24px;bottom:75px;font-size:2.8rem}
+ .mascot-social{left:31px;top:48px;color:#fb7185;font-size:3.3rem}
+ .mascot-business{right:25px;top:42px;font-size:2.8rem}
+ .mascot-admin{right:25px;bottom:76px;font-size:2.8rem}
+ .welcome-screen{
+   background:
+     linear-gradient(rgba(14,116,144,.18),rgba(14,116,144,.18)),
+     linear-gradient(180deg,#7dd3fc 0%,#38bdf8 52%,#f6c875 53%,#d6a15d 100%);
+ }
+ .welcome-stars{display:none}
+ .welcome-orbit{
+   width:245px;height:175px;margin-bottom:5px;
+   background:radial-gradient(ellipse at 50% 82%,#f8d58b 0 34%,transparent 35%),
+              radial-gradient(ellipse at 50% 89%,#0e7490 0 51%,transparent 52%);
+   border-radius:50%;
+ }
+ .welcome-planet,.welcome-character{display:none}
+ .welcome-bird{
+   position:absolute;left:50%;top:28px;width:175px;height:125px;
+   transform:translateX(-50%);object-fit:contain;
+   filter:drop-shadow(0 12px 8px rgba(8,47,73,.3));
+   animation:welcomeBirdGlide 3.5s ease-in-out infinite;
+ }
+ .welcome-kicker{color:#075985}
+ .welcome-content h2{
+   background:linear-gradient(90deg,#075985,#0f766e,#c2410c);
+   -webkit-background-clip:text;background-clip:text;
+   filter:drop-shadow(0 8px 20px rgba(8,47,73,.15));
+ }
+ .welcome-content p{color:#0c4a6e}
+ .start-btn{
+   background:linear-gradient(90deg,#0f766e,#0284c7);
+   box-shadow:0 10px 35px rgba(8,112,145,.32);
+ }
+ .language-screen{
+   background:
+     radial-gradient(ellipse at 20% 25%,rgba(255,255,255,.7) 0 5%,transparent 15%),
+     radial-gradient(ellipse at 80% 18%,rgba(255,255,255,.55) 0 4%,transparent 14%),
+     linear-gradient(180deg,#7dd3fc 0%,#38bdf8 58%,#f6c875 59%,#d6a15d 100%);
+ }
+ .language-stars{
+   opacity:.9;background-image:none;
+ }
+ .language-stars::after{
+   content:'🌴　🌺　🌴';position:absolute;bottom:8%;left:50%;
+   transform:translateX(-50%);font-size:3rem;white-space:nowrap;
+ }
+ .language-content h1{color:#075985;text-shadow:0 3px 0 rgba(255,255,255,.35)}
+ .language-mascot{
+   width:150px;height:108px;object-fit:contain;display:block;margin:0 auto 4px;
+   filter:drop-shadow(0 10px 8px rgba(8,47,73,.28));animation:birdGlide 3.5s ease-in-out infinite;
+ }
+ .language-question{color:#0c4a6e}
+ .language-btn{background:rgba(7,89,133,.72);border-color:rgba(255,255,255,.6)}
+ .career-panel{
+   background:linear-gradient(145deg,rgba(8,112,145,.98),rgba(6,78,99,.98));
+ }
+ .route-detail-box p{white-space:pre-line}
+ .route-spm-box{grid-column:1/-1;border-color:rgba(253,230,138,.3);background:rgba(120,53,15,.2)}
+ .route-spm-box strong{color:#fde68a}
+ @keyframes palmSway{to{transform:rotate(4deg)}}
+ @keyframes boatBob{to{transform:translateY(-7px) rotate(-3deg)}}
+ @keyframes birdGlide{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
+ @keyframes welcomeBirdGlide{0%,100%{transform:translateX(-50%) translateY(0) rotate(-2deg)}50%{transform:translateX(-50%) translateY(-10px) rotate(2deg)}}
+
+  /* ===== SINGLE-ISLAND JOURNEY ===== */
+  .universe-map.single-island-mode{
+    display:grid;grid-template-columns:1fr;max-width:850px;
+    padding-bottom:1rem;
+  }
+  .universe-map.single-island-mode .island-node{display:none}
+  .universe-map.single-island-mode .island-node.active{
+    display:block;transform:none;min-height:470px;
+  }
+  .universe-map.single-island-mode .island-node.active.island-open{min-height:560px}
+  .universe-map.single-island-mode .island-node.active .scene{height:320px}
+  .universe-map.single-island-mode .island-node.active.island-open .scene{height:380px}
+  .universe-map.single-island-mode .island-node.active .island-actions{display:none}
+  .universe-map.single-island-mode .island-node.active.island-open .island-actions{display:flex}
+  .island-navigation{
+    width:min(850px,92%);display:flex;align-items:center;justify-content:space-between;
+    gap:16px;margin:0 auto 3rem;position:relative;z-index:2;
+  }
+  .island-nav-btn{
+    min-width:150px;border:1px solid rgba(255,255,255,.45);border-radius:999px;
+    padding:12px 18px;background:rgba(7,89,133,.86);color:#fff;font-weight:900;
+    cursor:pointer;box-shadow:0 8px 22px rgba(8,47,73,.2);transition:transform .2s,background .2s,opacity .2s;
+  }
+  .island-nav-btn:hover:not(:disabled){transform:translateY(-3px);background:#0f766e}
+  .island-nav-btn:focus-visible{outline:3px solid #fde68a;outline-offset:3px}
+  .island-nav-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+  .island-progress{text-align:center;color:#075985;font-weight:900;min-width:150px}
+  .island-progress strong{display:block;font-size:1.15rem}
+  .island-progress span{display:block;margin-top:3px;font-size:.75rem;letter-spacing:1.5px;text-transform:uppercase;opacity:.75}
+  .map-back-btn{display:none!important}
+  @media(max-width:600px){
+    .island-navigation{width:88%;gap:8px;margin-bottom:2rem}
+    .island-nav-btn{min-width:0;padding:10px 12px;font-size:12px}
+    .island-progress{min-width:74px}
+    .island-progress span{font-size:9px;letter-spacing:.8px}
+  }
+
+</style>
+</head>
+<body>
+    <header>
+        <h1><img class="brand-mascot" src="1000114967-removebg-preview.png" alt="CareerVerse bird mascot">CareerVerse</h1>
+        <p><span data-i18n="welcomeIntro">Explore the Holland RIASEC career world. Click an island to discover your career strengths!</span></p>
+    </header>
+
+<div class="language-screen" id="language-screen">
+  <div class="language-stars"></div>
+  <div class="language-content">
+    <img class="language-mascot" src="1000114967-removebg-preview.png" alt="CareerVerse bird mascot">
+    <div class="language-kicker">WELCOME TO</div>
+    <h1>CareerVerse</h1>
+    <p class="language-question">Choose your language<br><span>Pilih bahasa anda</span></p>
+    <div class="language-buttons">
+      <button class="language-btn" data-lang="en" type="button">🇬🇧 English</button>
+      <button class="language-btn" data-lang="ms" type="button">🇲🇾 Bahasa Melayu</button>
+    </div>
+  </div>
+</div>
+
+<div class="welcome-screen" id="welcome-screen">
+    <div class="welcome-orbit">
+        <img class="welcome-bird" src="1000114967-removebg-preview.png" alt="CareerVerse bird mascot">
+    </div>
+    <div class="welcome-content">
+        <div class="welcome-kicker"><span data-i18n="welcomeKicker">WELCOME TO</span></div>
+        <h2>CareerVerse</h2>
+        <p><span data-i18n="welcomeSub">Terokai enam dunia kerjaya Holland RIASEC dan temui dunia yang paling menarik untuk anda.</span></p>
+        <button id="start-btn" class="start-btn"><span data-i18n="startBtn">START EXPLORING →</span></button>
+    </div>
+</div>
+
+
+<main class="universe-map">
+  <div class="island-node" data-type="R"><div class="scene scene-r"><div class="sun">☀️</div><div class="palm">🌴</div><img class="island-mascot" src="W%20wrench.png" alt="Bird mascot building and repairing"><span class="mascot-prop mascot-tools">🔧</span><div class="island-sand"></div><div class="ground"></div></div><div class="island-letter">R</div><div class="island-title">Realistik</div><div class="island-tagline">Bina • Baiki • Praktikal</div><div class="island-actions"><button class="career-action-btn overview-btn" type="button"><span data-i18n="overviewBtn">📚 Career Overview</span></button><button class="career-action-btn minigame-btn" type="button"><span data-i18n="minigameBtn">🎮 Mini Game</span></button></div></div>
+  <div class="island-node" data-type="I"><div class="scene scene-i"><div class="cloud">☁️</div><div class="telescope">🔭</div><div class="lab">🧪</div><img class="island-mascot" src="Investergator%20one.png" alt="Bird mascot exploring science"><span class="mascot-prop mascot-science">🔬</span><div class="island-sand"></div><div class="ground"></div></div><div class="island-letter">I</div><div class="island-title">Investigatif</div><div class="island-tagline">Sains • Data • Logik</div><div class="island-actions"><button class="career-action-btn overview-btn" type="button"><span data-i18n="overviewBtn">📚 Career Overview</span></button><button class="career-action-btn minigame-btn" type="button"><span data-i18n="minigameBtn">🎮 Mini Game</span></button></div></div>
+  <div class="island-node" data-type="A"><div class="scene scene-a"><div class="sun">🌺</div><div class="canvas">🖼️</div><img class="island-mascot" src="Art%20Mascot.png" alt="Bird mascot creating art"><span class="mascot-prop mascot-art">🖌️</span><div class="island-sand"></div><div class="ground"></div></div><div class="island-letter">A</div><div class="island-title">Artistik</div><div class="island-tagline">Seni • Reka Bentuk • Kreativiti</div><div class="island-actions"><button class="career-action-btn overview-btn" type="button"><span data-i18n="overviewBtn">📚 Career Overview</span></button><button class="career-action-btn minigame-btn" type="button"><span data-i18n="minigameBtn">🎮 Mini Game</span></button></div></div>
+  <div class="island-node" data-type="S"><div class="scene scene-s"><div class="palm">🌴</div><img class="island-mascot" src="the%20caring%20one.png" alt="Bird mascot helping people"><span class="mascot-prop mascot-social">❤</span><div class="speech">💬</div><div class="island-sand"></div><div class="ground"></div></div><div class="island-letter">S</div><div class="island-title">Sosial</div><div class="island-tagline">Bantu • Ajar • Bimbing</div><div class="island-actions"><button class="career-action-btn overview-btn" type="button"><span data-i18n="overviewBtn">📚 Career Overview</span></button><button class="career-action-btn minigame-btn" type="button"><span data-i18n="minigameBtn">🎮 Mini Game</span></button></div></div>
+  <div class="island-node" data-type="E"><div class="scene scene-e"><div class="sun">☀️</div><div class="chart"><span></span><span></span><span></span></div><img class="island-mascot" src="the%20money%20one.png" alt="Bird mascot leading a business"><span class="mascot-prop mascot-business">📈</span><div class="boat">🛶</div><div class="island-sand"></div><div class="ground"></div></div><div class="island-letter">E</div><div class="island-title">Enterprising</div><div class="island-tagline">Pimpin • Perniagaan • Pengaruh</div><div class="island-actions"><button class="career-action-btn overview-btn" type="button"><span data-i18n="overviewBtn">📚 Career Overview</span></button><button class="career-action-btn minigame-btn" type="button"><span data-i18n="minigameBtn">🎮 Mini Game</span></button></div></div>
+  <div class="island-node" data-type="C"><div class="scene scene-c"><div class="cloud">☁️</div><div class="folders">📁 📄 📋</div><img class="island-mascot" src="the%20one%20with%20the%20clipboard.png" alt="Bird mascot organising records"><span class="mascot-prop mascot-admin">📋</span><div class="computer">💻</div><div class="shell">🐚</div><div class="island-sand"></div><div class="ground"></div></div><div class="island-letter">C</div><div class="island-title">Konvensional</div><div class="island-tagline">Data • Rekod • Sistem</div><div class="island-actions"><button class="career-action-btn overview-btn" type="button"><span data-i18n="overviewBtn">📚 Career Overview</span></button><button class="career-action-btn minigame-btn" type="button"><span data-i18n="minigameBtn">🎮 Mini Game</span></button></div></div>
+</main>
+
+<div class="island-navigation" id="island-navigation" aria-label="Island navigation">
+  <button class="island-nav-btn" id="island-prev" type="button">
+    <span data-i18n="prevIsland">← PREVIOUS ISLAND</span>
+  </button>
+  <div class="island-progress" aria-live="polite">
+    <strong id="island-progress-count">1 / 6</strong>
+    <span data-i18n="islandJourney">ISLAND JOURNEY</span>
+  </div>
+  <button class="island-nav-btn" id="island-next" type="button">
+    <span data-i18n="nextIsland">NEXT ISLAND →</span>
+  </button>
+</div>
+
+<button class="map-back-btn" id="map-back-btn" type="button">
+  <span data-i18n="backToIslands">← BACK TO ISLANDS</span>
+</button>
+
+<script>
+const islands = Array.from(document.querySelectorAll('.island-node'));
+const map = document.querySelector('.universe-map');
+const welcome = document.getElementById('welcome-screen');
+const startBtn = document.getElementById('start-btn');
+const islandPrevBtn = document.getElementById('island-prev');
+const islandNextBtn = document.getElementById('island-next');
+const islandProgressCount = document.getElementById('island-progress-count');
+let activeIslandIndex = 0;
+let journeyStarted = false;
+
+startBtn.addEventListener('click', () => {
+    journeyStarted = true;
+    if (pageHeader) {
+        pageHeader.classList.add('page-header-hidden');
+        pageHeader.style.display = 'none';
+    }
+    welcome.classList.add('hidden');
+    setTimeout(() => welcome.style.display = 'none', 700);
+});
+
+const pageHeader = document.querySelector('header');
+const mapBackBtn = document.getElementById('map-back-btn');
+
+function showIsland(index, open=false) {
+    activeIslandIndex = Math.max(0, Math.min(index, islands.length - 1));
+    map.classList.add('single-island-mode');
+    islands.forEach((island, islandIndex) => {
+        island.classList.toggle('active', islandIndex === activeIslandIndex);
+        island.classList.remove('selected', 'island-open');
+    });
+    const activeIsland = islands[activeIslandIndex];
+    if (activeIsland && open) activeIsland.classList.add('island-open');
+    if (islandPrevBtn) islandPrevBtn.disabled = activeIslandIndex === 0;
+    if (islandNextBtn) islandNextBtn.disabled = activeIslandIndex === islands.length - 1;
+    if (islandProgressCount) islandProgressCount.textContent = `${activeIslandIndex + 1} / ${islands.length}`;
+    if (mapBackBtn) mapBackBtn.classList.remove('show');
+    if (pageHeader) {
+        pageHeader.style.display = journeyStarted ? 'none' : '';
+        if (journeyStarted) pageHeader.classList.add('page-header-hidden');
+    }
+}
+
+function selectIsland(index) {
+    showIsland(index, true);
+}
+
+islands.forEach((island, index) => island.addEventListener('click', event => {
+    if (event.target.closest('button')) return;
+    selectIsland(index);
+}));
+
+if (islandPrevBtn) islandPrevBtn.addEventListener('click', () => showIsland(activeIslandIndex - 1));
+if (islandNextBtn) islandNextBtn.addEventListener('click', () => showIsland(activeIslandIndex + 1));
+if (mapBackBtn) mapBackBtn.addEventListener('click', () => showIsland(activeIslandIndex));
+showIsland(0);
+</script>
+
+
+<div class="career-modal" id="career-modal" aria-hidden="true">
+ <div class="career-panel" role="dialog" aria-modal="true">
+  <div class="career-panel-header"><div><h2 id="career-modal-title">Career Overview</h2><p id="career-modal-description"></p><p class="career-lang-note" id="career-lang-note"></p></div><button class="career-close" id="career-close" type="button">×</button></div>
+  <div id="career-list-view"><div class="career-list" id="career-list"></div></div>
+  <div class="route-view" id="route-view"><button class="career-back" id="career-back" type="button">← Back to careers</button><h3 class="route-title" id="route-title"></h3><p class="route-title-ms" id="route-title-ms"></p><p id="route-intro"></p><div class="route-steps" id="route-steps"></div><p class="route-note" id="route-note"><strong>Note:</strong> This is a typical example pathway in Malaysia. Entry requirements vary by institution and programme. Check current requirements and accreditation before applying. MQA's Malaysian Qualifications Register (MQR) is the reference for accredited higher-education programmes.</p>
+   <div class="career-chat" id="career-chat">
+    <h4 id="chat-title"><span data-i18n="chatTitle">💬 Ask about this career</span></h4>
+    <div class="chat-thread" id="chat-thread"></div>
+    <form class="chat-form" id="chat-form">
+     <input type="text" id="chat-input" placeholder="Ask a question..." autocomplete="off" />
+     <button type="submit" id="chat-send"><span data-i18n="chatSend">Send</span></button>
+    </form>
+   </div>
+  </div>
+ </div>
+</div>
+
+<div class="minigame-modal" id="minigame-modal" aria-hidden="true">
+ <div class="minigame-panel" role="dialog" aria-modal="true" aria-labelledby="minigame-modal-title">
+  <div class="minigame-header">
+   <div>
+    <h2 id="minigame-modal-title">Island Mini Games</h2>
+    <p id="minigame-modal-description">Choose a career simulation to play.</p>
+   </div>
+   <button class="minigame-close" id="minigame-close" type="button" aria-label="Close mini games">×</button>
+  </div>
+  <div class="minigame-body">
+   <div class="minigame-list" id="minigame-list"></div>
+   <div class="minigame-frame-wrap" id="minigame-frame-wrap">
+    <div class="minigame-frame-toolbar">
+     <button class="minigame-back" id="minigame-back" type="button">← Back to games</button>
+     <span class="minigame-current-title" id="minigame-current-title"></span>
+    </div>
+    <iframe class="minigame-frame" id="minigame-frame" title="Career mini game" allow="fullscreen"></iframe>
+   </div>
+  </div>
+ </div>
+</div>
+
+<script>
+const careerData = {"R": {"title": {"ms": "Pulau Realistik — Gambaran Kerjaya", "en": "Realistic Island — Career Overview"}, "description": {"ms": "Kerjaya yang banyak melibatkan mesin, alatan, pembinaan, operasi, penyelenggaraan dan kerja praktikal.", "en": "Careers that heavily involve machines, tools, construction, operations, maintenance and practical work."}, "careers": [["Mechanical Engineer", "Engineering / machines", ["SPM → Foundation / Matriculation / Diploma in Mechanical Engineering", "→ Bachelor of Mechanical Engineering or related engineering degree", "→ Internship / industrial training → graduate engineer role", "→ Check current professional-body requirements for regulated engineering practice"], "Jurutera Mekanikal"], ["Electrical & Electronics Technician", "Technical / electrical systems", ["SPM → Certificate or Diploma in Electrical & Electronics / related TVET programme", "→ Practical training / industrial placement", "→ Technician or maintenance role", "→ Continue to higher qualification or specialised certification as needed"], "Juruteknik Elektrik & Elektronik"], ["Automotive Technician", "Vehicles / hands-on repair", ["SPM → Automotive certificate / SKM / Diploma in Automotive Technology", "→ Workshop practical training / industrial attachment", "→ Automotive technician / diagnostic technician", "→ Specialise in EV, diagnostics or workshop management"], "Juruteknik Automotif"], ["Civil Engineering Technician", "Construction / site work", ["SPM → Certificate / Diploma in Civil Engineering or Civil Engineering Technology", "→ Site and laboratory practical training", "→ Civil engineering technician / site support roles", "→ Continue to degree-level study if desired"], "Juruteknik Kejuruteraan Awam"], ["Industrial Maintenance Technician", "Machines / maintenance", ["SPM → TVET certificate / SKM / Diploma in Industrial Maintenance or related field", "→ Workshop and industrial practical training", "→ Maintenance technician role", "→ Progress into senior technician, supervisor or further study"], "Juruteknik Penyelenggaraan Industri"], ["Welding & Fabrication Technician", "Metalwork / fabrication", ["SPM → Certificate / Diploma in Welding Technology or Mechanical Fabrication", "→ Practical welding certification / workshop training", "→ Fabrication or welding technician role", "→ Progress to certified specialist welder or workshop supervisor"], "Juruteknik Kimpalan & Fabrikasi"], ["Marine Engineering Technician", "Ships / marine systems", ["SPM → Diploma in Marine Engineering or Nautical Studies", "→ Sea time / onboard practical training as required", "→ Marine engineering technician or engine room role", "→ Pursue further certificate of competency for career progression"], "Juruteknik Kejuruteraan Marin"], ["Agrotechnology Technician", "Agriculture / agrotechnology", ["SPM → Certificate / Diploma in Agrotechnology or Agriculture Science", "→ Farm / plantation practical attachment", "→ Agrotechnology technician or field officer role", "→ Continue to degree study or specialise in precision agriculture"], "Juruteknik Agroteknologi"], ["Aircraft Maintenance Technician", "Aviation / aircraft systems", ["SPM → Diploma in Aircraft Maintenance Engineering or Aviation Technology", "→ Approved aviation training organisation practical hours", "→ Aircraft maintenance technician role", "→ Pursue licensing for further progression, subject to current civil aviation requirements"], "Juruteknik Penyelenggaraan Pesawat"], ["HVAC & Refrigeration Technician", "Building systems / climate control", ["SPM → Certificate / Diploma in Air-Conditioning & Refrigeration or Mechanical Engineering Technology", "→ Workshop and on-site practical training", "→ HVAC / refrigeration technician role", "→ Progress into senior technician or building-systems specialist"], "Juruteknik Penyaman Udara & Penyejukan"]]}, "I": {"title": {"ms": "Pulau Investigatif — Gambaran Kerjaya", "en": "Investigative Island — Career Overview"}, "description": {"ms": "Kerjaya yang banyak melibatkan penyelidikan, analisis, sains, data, eksperimen dan penyelesaian masalah.", "en": "Careers that heavily involve research, analysis, science, data, experiments and problem-solving."}, "careers": [["Data Analyst", "Data / statistics", ["SPM → Foundation / Diploma in Data, IT, Statistics, Mathematics or related field", "→ Bachelor in Data Science, Statistics, Computer Science or related field", "→ Portfolio + internship", "→ Data analyst / business intelligence roles"], "Penganalisis Data"], ["Software Developer", "Programming / problem solving", ["SPM → Foundation / Diploma in Computer Science, Software Engineering or IT", "→ Bachelor in Computer Science / Software Engineering or related degree", "→ Programming projects + internship", "→ Junior developer → software developer"], "Pembangun Perisian"], ["Laboratory Technologist", "Laboratory / science", ["SPM → Diploma in Medical Laboratory Technology / related science programme", "→ Practical laboratory training", "→ Laboratory technologist roles, subject to current requirements", "→ Continue degree study for further specialisation"], "Teknologis Makmal"], ["Research Assistant", "Research / experiments", ["SPM → Foundation / Diploma in a relevant science or technical field", "→ Bachelor degree in the relevant discipline", "→ Research project / laboratory experience", "→ Research assistant → postgraduate study for research-intensive careers"], "Pembantu Penyelidikan"], ["Environmental Scientist", "Environment / field research", ["SPM → Foundation / Matriculation / Diploma in science or environmental field", "→ Bachelor in Environmental Science, Biology, Chemistry or related field", "→ Fieldwork / internship", "→ Environmental research, monitoring or consulting roles"], "Saintis Alam Sekitar"], ["Data Scientist", "Data / machine learning", ["SPM → Foundation / Diploma in Data Science, Mathematics, Statistics or Computer Science", "→ Bachelor in Data Science, Computer Science or related field", "→ Machine learning / analytics projects + internship", "→ Data scientist → specialised ML / AI roles"], "Saintis Data"], ["Cybersecurity Analyst", "Security / networks", ["SPM → Foundation / Diploma in Computer Science, Networking or Cybersecurity", "→ Bachelor in Cybersecurity, Computer Science or related field", "→ Security certifications and practical labs + internship", "→ Cybersecurity analyst → specialist / security engineer roles"], "Penganalisis Keselamatan Siber"], ["Biomedical Scientist", "Medical laboratory / diagnostics", ["SPM → Foundation / Diploma in a relevant science field", "→ Bachelor in Biomedical Science or related field", "→ Clinical laboratory attachment / practical training", "→ Biomedical scientist role, subject to current registration requirements"], "Saintis Bioperubatan"], ["Actuarial Analyst", "Risk / statistics", ["SPM → Foundation / Diploma in Actuarial Science, Mathematics or Statistics", "→ Bachelor in Actuarial Science or related quantitative field", "→ Progress through professional actuarial examinations", "→ Actuarial analyst → qualified actuary, subject to current professional-body requirements"], "Penganalisis Aktuari"], ["Geologist / Geoscientist", "Earth science / field research", ["SPM → Foundation / Matriculation / Diploma in Geology or Earth Science", "→ Bachelor in Geology, Geoscience or related field", "→ Fieldwork and mapping practical experience", "→ Geologist / geoscience roles in exploration, environmental or engineering geology"], "Ahli Geologi / Ahli Sains Bumi"]]}, "A": {"title": {"ms": "Pulau Artistik — Gambaran Kerjaya", "en": "Artistic Island — Career Overview"}, "description": {"ms": "Kerjaya yang memberi ruang kepada imaginasi, reka bentuk, visual, penulisan, persembahan dan penciptaan idea.", "en": "Careers that give room for imagination, design, visuals, writing, performance and creating ideas."}, "careers": [["Graphic Designer", "Visual design", ["SPM → Diploma / Foundation in Graphic Design, Visual Communication or related field", "→ Bachelor in Graphic Design / Visual Communication if desired", "→ Portfolio + internship/freelance projects", "→ Graphic designer / visual designer"], "Pereka Grafik"], ["UI/UX Designer", "Digital products / design", ["SPM → Diploma / Foundation in Multimedia, Graphic Design, Interaction Design or related field", "→ Bachelor in a related design / computing field if desired", "→ UI/UX portfolio + usability projects", "→ Junior UI/UX designer → product designer"], "Pereka UI/UX"], ["Animator", "Animation / storytelling", ["SPM → Diploma in Animation, 3D, Multimedia or related creative field", "→ Bachelor in Animation / Digital Media if desired", "→ Showreel + industry projects", "→ Animator / 2D / 3D / motion roles"], "Animator"], ["Content Creator", "Media / storytelling", ["SPM → Diploma / degree in Media, Communication, Multimedia or related field is one route", "→ Build portfolio across video, writing, photography or social media", "→ Internship / freelance / personal projects", "→ Content creator / media production roles"], "Pencipta Kandungan"], ["Photographer", "Photography / visual media", ["SPM → Certificate / Diploma in Photography, Creative Media or related field, or skills-based learning", "→ Build portfolio and practical experience", "→ Production assistance / freelance projects", "→ Photographer / visual content specialist"], "Jurugambar"], ["Interior Designer", "Space / interior design", ["SPM → Diploma / Foundation in Interior Design or related field", "→ Bachelor in Interior Design if desired", "→ Portfolio + internship with a design firm", "→ Interior designer, subject to current professional registration where applicable"], "Pereka Dalaman"], ["Fashion Designer", "Fashion / apparel design", ["SPM → Diploma / Foundation in Fashion Design or Textile Design", "→ Bachelor in Fashion Design if desired", "→ Portfolio + internship or apprenticeship with a design house", "→ Fashion designer / stylist roles"], "Pereka Fesyen"], ["Music Producer", "Audio / music production", ["SPM → Diploma / Foundation in Music Production, Audio Engineering or related field, or skills-based learning", "→ Build a portfolio of produced tracks and technical skills", "→ Studio internship / freelance projects", "→ Music producer / audio engineer roles"], "Penerbit Muzik"], ["Film / Video Editor", "Film / post-production", ["SPM → Diploma in Film Production, Multimedia or related creative field", "→ Bachelor in Film / Media Production if desired", "→ Editing portfolio + internship or freelance projects", "→ Video editor → post-production specialist roles"], "Penyunting Filem / Video"], ["Game Designer", "Game design / interactive media", ["SPM → Diploma / Foundation in Game Design, Multimedia or Computer Science", "→ Bachelor in Game Design / Development if desired", "→ Game projects / prototypes + portfolio", "→ Junior game designer → game designer roles"], "Pereka Permainan"]]}, "S": {"title": {"ms": "Pulau Sosial — Gambaran Kerjaya", "en": "Social Island — Career Overview"}, "description": {"ms": "Kerjaya yang berfokus kepada membantu, mengajar, membimbing, berkomunikasi dan bekerja rapat dengan orang lain.", "en": "Careers focused on helping, teaching, guiding, communicating and working closely with other people."}, "careers": [["Teacher", "Education / people", ["SPM → Foundation / Matriculation / Diploma as an eligible entry route", "→ Bachelor of Education or relevant degree + recognised teacher-training route, depending on target institution", "→ Teaching practicum / required training", "→ Teaching career, subject to current appointment and qualification requirements"], "Guru"], ["Counsellor", "Guidance / people", ["SPM → Foundation / Diploma where accepted for entry", "→ Bachelor degree in Counselling or related recognised programme", "→ Practical training / supervised experience as required", "→ Counselling practice, subject to current requirements"], "Kaunselor"], ["Social Worker", "Community / support", ["SPM → Diploma / Foundation in Social Work or related social-science field", "→ Bachelor in Social Work or related field", "→ Field placement / community experience", "→ Social and community service roles"], "Pekerja Sosial"], ["Human Resources Executive", "People / workplace", ["SPM → Foundation / Diploma in Human Resources, Business or related field", "→ Bachelor in HR / Business / Management for a common graduate route", "→ Internship / workplace projects", "→ HR executive → specialist or management roles"], "Eksekutif Sumber Manusia"], ["Nurse", "Healthcare / patient care", ["SPM → Diploma in Nursing through an approved programme", "→ Clinical training / placements", "→ Nursing registration and other current requirements", "→ Registered nurse → further specialisation / degree study"], "Jururawat"], ["Speech-Language Therapist", "Communication / therapy", ["SPM → Foundation / Diploma where accepted for entry", "→ Bachelor in Speech-Language Therapy or related recognised programme", "→ Clinical placements / supervised practice", "→ Speech-language therapist role, subject to current registration requirements"], "Ahli Terapi Pertuturan-Bahasa"], ["Occupational Therapist", "Rehabilitation / therapy", ["SPM → Foundation / Diploma where accepted for entry", "→ Bachelor in Occupational Therapy or related recognised programme", "→ Clinical placements / supervised practice", "→ Occupational therapist role, subject to current registration requirements"], "Ahli Terapi Carakerja"], ["Community Development Officer", "Community / social programmes", ["SPM → Diploma / Foundation in Social Work, Community Development or related field", "→ Bachelor in a related social-science field for a common route", "→ Fieldwork / community project experience", "→ Community development officer → programme coordinator roles"], "Pegawai Pembangunan Komuniti"], ["Physiotherapist", "Rehabilitation / patient care", ["SPM → Foundation / Diploma where accepted for entry", "→ Bachelor in Physiotherapy or related recognised programme", "→ Clinical placements / supervised practice", "→ Physiotherapist role, subject to current registration requirements"], "Ahli Fisioterapi"], ["Early Childhood Educator", "Early education / childcare", ["SPM → Certificate / Diploma in Early Childhood Education", "→ Bachelor in Early Childhood Education for a common progression route", "→ Teaching practicum / supervised classroom experience", "→ Early childhood educator role, subject to current requirements"], "Pendidik Awal Kanak-Kanak"]]}, "E": {"title": {"ms": "Pulau Enterprising — Gambaran Kerjaya", "en": "Enterprising Island — Career Overview"}, "description": {"ms": "Kerjaya yang banyak melibatkan kepimpinan, perniagaan, jualan, rundingan, pengurusan dan membuat keputusan.", "en": "Careers that heavily involve leadership, business, sales, negotiation, management and decision-making."}, "careers": [["Entrepreneur", "Business / leadership", ["SPM → Certificate / Diploma / Foundation in Business or related field (optional)", "→ Business learning through study, projects and real-world experience", "→ Validate an idea + develop a business plan", "→ Launch and grow a business"], "Usahawan"], ["Marketing Executive", "Marketing / communication", ["SPM → Foundation / Diploma in Marketing, Business, Media or related field", "→ Bachelor in Marketing / Business / related field for a common graduate route", "→ Internship + campaign/project portfolio", "→ Marketing executive → specialist / manager"], "Eksekutif Pemasaran"], ["Sales Executive", "Sales / negotiation", ["SPM → Diploma / certificate in Business, Marketing or related field is one route", "→ Develop communication, product and customer skills", "→ Internship / entry-level sales experience", "→ Sales executive → account / business development roles"], "Eksekutif Jualan"], ["Business Development Executive", "Strategy / growth", ["SPM → Foundation / Diploma in Business, Management, Marketing or related field", "→ Bachelor in Business / Management / Marketing for a common route", "→ Internship + commercial projects", "→ Business development executive → senior / management roles"], "Eksekutif Pembangunan Perniagaan"], ["Project Manager", "Planning / leadership", ["SPM → Diploma / Foundation in Business, Management, IT, Engineering or relevant field", "→ Bachelor in a relevant discipline for a common route", "→ Gain project experience + learn project-management methods", "→ Project coordinator → project manager"], "Pengurus Projek"], ["Real Estate Agent", "Property / sales", ["SPM → Certificate / Diploma in Estate Management, Business or related field is one route", "→ Complete registration and licensing requirements set by the current real-estate authority", "→ Practical experience under a registered agency", "→ Real estate negotiator → licensed real estate agent"], "Ejen Hartanah"], ["Event Manager", "Events / coordination", ["SPM → Diploma / Foundation in Event Management, Hospitality or Business", "→ Bachelor in Event Management or related field if desired", "→ Internship / on-the-ground event experience", "→ Event coordinator → event manager"], "Pengurus Acara"], ["Management Consultant", "Strategy / advisory", ["SPM → Foundation / Diploma in Business, Economics or related field", "→ Bachelor in Business, Economics or a related analytical field", "→ Internship + case-study / analytical project experience", "→ Analyst → management consultant roles"], "Perunding Pengurusan"], ["Public Relations Executive", "Communications / media relations", ["SPM → Foundation / Diploma in Public Relations, Communication or Mass Media", "→ Bachelor in Public Relations / Communication for a common graduate route", "→ Internship + media / campaign portfolio", "→ PR executive → PR specialist / manager roles"], "Eksekutif Perhubungan Awam"], ["Investment / Financial Advisor", "Finance / advisory", ["SPM → Foundation / Diploma in Finance, Business or Economics", "→ Bachelor in Finance / Economics / Business for a common graduate route", "→ Obtain current licensing / certification required for financial advisory practice", "→ Financial advisor role, subject to current regulatory requirements"], "Penasihat Pelaburan / Kewangan"]]}, "C": {"title": {"ms": "Pulau Konvensional — Gambaran Kerjaya", "en": "Conventional Island — Career Overview"}, "description": {"ms": "Kerjaya yang menekankan ketepatan, rekod, data, prosedur, organisasi dan pengurusan maklumat.", "en": "Careers that emphasise accuracy, records, data, procedures, organisation and information management."}, "careers": [["Accountant", "Finance / records", ["SPM → Foundation / Diploma in Accounting or related field", "→ Bachelor of Accounting / relevant accounting degree for a common route", "→ Practical experience + current professional requirements", "→ Accounting roles → professional qualification / specialisation where applicable"], "Akauntan"], ["Administrative Executive", "Organisation / office", ["SPM → Certificate / Diploma in Business Administration, Office Management or related field", "→ Bachelor in Business / Management as an optional progression", "→ Internship / office experience", "→ Administrative executive → senior administration / operations"], "Eksekutif Pentadbiran"], ["Banking Executive", "Finance / customer service", ["SPM → Foundation / Diploma in Banking, Finance, Business or related field", "→ Bachelor in Finance / Banking / Business for a common graduate route", "→ Internship / banking experience", "→ Banking executive → specialist / management roles"], "Eksekutif Perbankan"], ["Auditor", "Compliance / analysis", ["SPM → Foundation / Diploma in Accounting or related field", "→ Bachelor in Accounting / relevant degree", "→ Audit internship / practical experience", "→ Audit role → further professional qualification where required"], "Juruaudit"], ["Records / Information Officer", "Information / organisation", ["SPM → Diploma in Records Management, Information Management, Library / Information Science or related field", "→ Bachelor in a related information-management field for further progression", "→ Internship / information-system experience", "→ Records / information management roles"], "Pegawai Rekod / Maklumat"], ["Logistics Coordinator", "Supply chain / logistics", ["SPM → Diploma / Foundation in Logistics, Supply Chain Management or Business", "→ Bachelor in Logistics / Supply Chain Management if desired", "→ Internship / warehouse or freight operations experience", "→ Logistics coordinator → supply chain executive roles"], "Penyelaras Logistik"], ["Payroll Executive", "HR / payroll administration", ["SPM → Certificate / Diploma in Accounting, HR or Business Administration", "→ Bachelor in a related field as an optional progression", "→ Internship / payroll systems experience", "→ Payroll executive → payroll manager roles"], "Eksekutif Gaji"], ["Insurance Underwriter", "Risk assessment / insurance", ["SPM → Foundation / Diploma in Insurance, Actuarial Science, Business or Finance", "→ Bachelor in a related field for a common graduate route", "→ Insurance industry training + internship", "→ Underwriting assistant → insurance underwriter"], "Underwriter Insurans"], ["Procurement Executive", "Purchasing / vendor management", ["SPM → Diploma / Foundation in Business, Supply Chain or Purchasing Management", "→ Bachelor in Business / Supply Chain Management if desired", "→ Internship / procurement or vendor-management experience", "→ Procurement executive → procurement manager roles"], "Eksekutif Perolehan"], ["Quality Assurance Officer", "Quality control / compliance", ["SPM → Certificate / Diploma in Quality Management, Engineering or a related technical field", "→ Bachelor in a related field as an optional progression", "→ QA / QC practical training or internship", "→ Quality assurance officer → quality manager roles"], "Pegawai Jaminan Kualiti"]]}};
+const careerModal=document.getElementById('career-modal');
+const careerList=document.getElementById('career-list');
+const careerModalTitle=document.getElementById('career-modal-title');
+const careerModalDescription=document.getElementById('career-modal-description');
+const careerListView=document.getElementById('career-list-view');
+const routeView=document.getElementById('route-view');
+const routeTitle=document.getElementById('route-title');
+const routeIntro=document.getElementById('route-intro');
+const routeSteps=document.getElementById('route-steps');
+const routeNote=document.getElementById('route-note');
+
+let openCareerType=null;
+function openCareerOverview(type){
+ const data=careerData[type]; if(!data)return;
+ openCareerType=type;
+ careerModalTitle.textContent=data.title[currentLang] || data.title.en;
+ careerModalDescription.textContent=data.description[currentLang] || data.description.en;
+ const langNoteEl=document.getElementById('career-lang-note');
+ if(langNoteEl) langNoteEl.textContent = currentLang==='ms'
+   ? 'ⓘ Nama kerjaya dipaparkan dalam Bahasa Inggeris dengan terjemahan kecil dalam Bahasa Melayu. Kategori dan langkah laluan pendidikan kekal dalam Bahasa Inggeris, seperti kebiasaan untuk kelayakan rasmi di Malaysia.'
+   : 'ⓘ Career names are shown in English with a small Bahasa Melayu translation. Categories and pathway steps stay in English, as is standard for official Malaysian qualifications.';
+ careerList.innerHTML='';
+ data.careers.forEach((career,index)=>{
+  const card=document.createElement('button');
+  card.type='button'; card.className='career-card';
+  card.innerHTML='<h3>'+career[0]+'</h3><div class="career-name-ms">'+career[3]+'</div><span>'+career[1]+' · '
+    +(currentLang === 'ms' ? 'Klik untuk melihat laluan pendidikan' : 'Click to see the education route')
+    +'</span>';
+  card.addEventListener('click',()=>openRoute(type,index));
+  careerList.appendChild(card);
+ });
+ careerListView.style.display='block'; routeView.classList.remove('open');
+ careerModal.classList.add('open'); careerModal.setAttribute('aria-hidden','false');
+}
+let openCareerIndex=null;
+ function getSpmGuidance(type,careerName){
+  const ms = currentLang === 'ms';
+  const name = careerName.toLowerCase();
+  let lines;
+  if(ms){
+   const base = {
+    R:['Bahasa Melayu: lulus (E atau lebih baik)','Sejarah: lulus (E atau lebih baik)','Matematik: kepujian (C atau lebih baik)','Sains / subjek teknikal: kepujian (C atau lebih baik)','Bahasa Inggeris: lulus; kepujian membantu'],
+    I:['Bahasa Melayu: lulus (E atau lebih baik)','Sejarah: lulus (E atau lebih baik)','Matematik: kepujian (C atau lebih baik)','Sains / Matematik Tambahan / ICT: kepujian (C atau lebih baik), mengikut program','Bahasa Inggeris: kepujian membantu'],
+    A:['Bahasa Melayu: lulus (E atau lebih baik)','Sejarah: lulus (E atau lebih baik)','Bahasa Inggeris: kepujian (C atau lebih baik)','Seni / Reka Bentuk / ICT: kepujian membantu','Portfolio atau ujian bakat mungkin diperlukan'],
+    S:['Bahasa Melayu: kepujian (C atau lebih baik)','Sejarah: lulus (E atau lebih baik)','Bahasa Inggeris: kepujian (C atau lebih baik)','Subjek berkaitan bidang: kepujian (C atau lebih baik)','Sains / Biologi diperlukan untuk banyak program kesihatan'],
+    E:['Bahasa Melayu: lulus (E atau lebih baik)','Sejarah: lulus (E atau lebih baik)','Matematik: kepujian (C atau lebih baik)','Bahasa Inggeris: kepujian (C atau lebih baik)','Perniagaan / Ekonomi / Akaun: kepujian membantu'],
+    C:['Bahasa Melayu: lulus (E atau lebih baik)','Sejarah: lulus (E atau lebih baik)','Matematik: kepujian (C atau lebih baik)','Bahasa Inggeris: kepujian membantu','Akaun / Perniagaan / ICT: kepujian membantu']
+   };
+   lines = base[type] || base.C;
+   if(/nurse|physiotherapist|occupational therapist|speech-language|biomedical/.test(name)){
+    lines = ['Bahasa Melayu: kepujian (C atau lebih baik)','Sejarah: lulus (E atau lebih baik)','Matematik: kepujian (C atau lebih baik)','Sains / Biologi: kepujian (C atau lebih baik)','Bahasa Inggeris: kepujian (C atau lebih baik)'];
+   } else if(/accountant|auditor|actuarial|financial advisor|underwriter/.test(name)){
+    lines = ['Bahasa Melayu: lulus (E atau lebih baik)','Sejarah: lulus (E atau lebih baik)','Matematik: kepujian (C atau lebih baik)','Matematik Tambahan / Akaun: kepujian disyorkan','Bahasa Inggeris: kepujian (C atau lebih baik)'];
+   } else if(/software|data analyst|data scientist|cybersecurity|geologist/.test(name)){
+    lines = ['Bahasa Melayu: lulus (E atau lebih baik)','Sejarah: lulus (E atau lebih baik)','Matematik: kepujian (C atau lebih baik)','Matematik Tambahan / Sains / ICT: kepujian disyorkan','Bahasa Inggeris: kepujian (C atau lebih baik)'];
+   }
+  } else {
+   const base = {
+    R:['Bahasa Melayu: pass (E or better)','Sejarah: pass (E or better)','Mathematics: credit (C or better)','Science / technical subject: credit (C or better)','English: pass; credit is helpful'],
+    I:['Bahasa Melayu: pass (E or better)','Sejarah: pass (E or better)','Mathematics: credit (C or better)','Science / Additional Mathematics / ICT: credit (C or better), depending on the programme','English: credit is helpful'],
+    A:['Bahasa Melayu: pass (E or better)','Sejarah: pass (E or better)','English: credit (C or better)','Art / Design / ICT: credit is helpful','A portfolio or talent test may also be required'],
+    S:['Bahasa Melayu: credit (C or better)','Sejarah: pass (E or better)','English: credit (C or better)','A relevant subject: credit (C or better)','Science / Biology is required for many health programmes'],
+    E:['Bahasa Melayu: pass (E or better)','Sejarah: pass (E or better)','Mathematics: credit (C or better)','English: credit (C or better)','Business / Economics / Accounting: credit is helpful'],
+    C:['Bahasa Melayu: pass (E or better)','Sejarah: pass (E or better)','Mathematics: credit (C or better)','English: credit is helpful','Accounting / Business / ICT: credit is helpful']
+   };
+   lines = base[type] || base.C;
+   if(/nurse|physiotherapist|occupational therapist|speech-language|biomedical/.test(name)){
+    lines = ['Bahasa Melayu: credit (C or better)','Sejarah: pass (E or better)','Mathematics: credit (C or better)','Science / Biology: credit (C or better)','English: credit (C or better)'];
+   } else if(/accountant|auditor|actuarial|financial advisor|underwriter/.test(name)){
+    lines = ['Bahasa Melayu: pass (E or better)','Sejarah: pass (E or better)','Mathematics: credit (C or better)','Additional Mathematics / Accounting: credit recommended','English: credit (C or better)'];
+   } else if(/software|data analyst|data scientist|cybersecurity|geologist/.test(name)){
+    lines = ['Bahasa Melayu: pass (E or better)','Sejarah: pass (E or better)','Mathematics: credit (C or better)','Additional Mathematics / Science / ICT: credit recommended','English: credit (C or better)'];
+   }
+  }
+  return {
+   label:ms ? 'Panduan subjek & gred SPM' : 'SPM subject & grade guide',
+   text:lines.join('\n'),
+   note:ms
+    ? 'Ini ialah sasaran panduan umum, bukan syarat rasmi tunggal. Syarat sebenar berbeza mengikut institusi dan program.'
+    : 'These are general target grades, not one universal official requirement. Exact requirements vary by institution and programme.'
+  };
+ }
+
+ function getStepDetails(stepIndex, careerName, stepText){
+  const ms = currentLang === 'ms';
+  const stages = ms ? [
+   {
+    intro: 'Ini ialah peringkat asas untuk membina pengetahuan atau kemahiran yang diperlukan sebelum bergerak ke langkah seterusnya.',
+    action: 'Bandingkan syarat kemasukan, tempoh pengajian, subjek utama dan kos bagi beberapa pilihan yang diiktiraf.'
+   },
+   {
+    intro: 'Peringkat ini memperdalam kemahiran khusus yang digunakan dalam bidang '+careerName+'.',
+    action: 'Semak modul, kemudahan latihan dan peluang latihan industri supaya pilihan anda sepadan dengan cara anda mahu belajar.'
+   },
+   {
+    intro: 'Latihan praktikal membantu anda menukar teori kepada pengalaman yang boleh dibuktikan.',
+    action: 'Simpan portfolio, log latihan atau contoh projek. Minta maklum balas dan catat kemahiran yang telah anda kuasai.'
+   },
+   {
+    intro: 'Selepas asas dan pengalaman dibina, langkah ini menunjukkan pilihan untuk memasuki bidang atau berkembang ke peringkat yang lebih tinggi.',
+    action: 'Baca beberapa iklan kerja sebenar dan semak kelayakan, pendaftaran atau pensijilan semasa yang dinyatakan oleh majikan atau badan berkaitan.'
+   }
+  ] : [
+   {
+    intro: 'This is the foundation stage: building the academic or technical knowledge needed before moving forward.',
+    action: 'Compare entry requirements, study length, core subjects and costs across several recognised options.'
+   },
+   {
+    intro: 'This stage develops the specialist knowledge used in '+careerName+'.',
+    action: 'Check the modules, training facilities and industry-placement opportunities so the route matches how you want to learn.'
+   },
+   {
+    intro: 'Practical experience turns classroom learning into evidence that you can use with employers.',
+    action: 'Keep a portfolio, training log or project samples. Ask for feedback and record the skills you have demonstrated.'
+   },
+   {
+    intro: 'Once the foundation and experience are in place, this step shows how to enter the field or progress further.',
+    action: 'Read several real job descriptions and check any current qualification, registration or certification requirements listed by employers or relevant bodies.'
+   }
+  ];
+  const stage = stages[Math.min(stepIndex, stages.length - 1)];
+  return {
+   intro: stage.intro,
+   action: stage.action,
+   pathwayLabel: ms ? 'Item laluan' : 'Pathway item',
+   actionLabel: ms ? 'Cadangan tindakan' : 'Suggested next action',
+   expandLabel: ms ? 'Klik untuk melihat penerangan' : 'Click to see an explanation',
+   spm: stepIndex === 0 ? getSpmGuidance(openCareerType,careerName) : null
+  };
+ }
+
+ function openRoute(type,index){
+ const career=careerData[type].careers[index]; if(!career)return;
+ openCareerIndex=index;
+ routeTitle.textContent=career[0];
+ const routeTitleMsEl=document.getElementById('route-title-ms');
+ if(routeTitleMsEl) routeTitleMsEl.textContent=career[3] || '';
+ routeIntro.textContent = currentLang === 'ms'
+    ? 'Laluan pendidikan biasa untuk '+career[0]+' di Malaysia.'
+    : 'Typical education route for '+career[0]+' in Malaysia.';
+ routeSteps.innerHTML='';
+ career[2].forEach((step,i)=>{
+   const item=document.createElement('div'); item.className='route-step';
+   const trigger=document.createElement('button');
+   const detailsId='route-step-details-'+type+'-'+index+'-'+i;
+   trigger.type='button';
+   trigger.className='route-step-trigger';
+   trigger.setAttribute('aria-expanded','false');
+   trigger.setAttribute('aria-controls',detailsId);
+
+   const number=document.createElement('span');
+   number.className='route-number';
+   number.textContent=i+1;
+
+   const heading=document.createElement('span');
+   const title=document.createElement('strong');
+   title.textContent=(currentLang === 'ms' ? 'Langkah ' : 'Step ')+(i+1);
+   const summary=document.createElement('span');
+   summary.className='route-step-summary';
+   summary.textContent=step;
+   heading.append(title,summary);
+
+   const chevron=document.createElement('span');
+   chevron.className='route-chevron';
+   chevron.setAttribute('aria-hidden','true');
+   chevron.textContent='⌄';
+   trigger.append(number,heading,chevron);
+
+   const detail=getStepDetails(i,career[0],step);
+   const details=document.createElement('div');
+   details.className='route-step-details';
+   details.id=detailsId;
+   details.hidden=true;
+   const intro=document.createElement('p');
+   intro.className='route-detail-intro';
+   intro.textContent=detail.intro;
+   const detailGrid=document.createElement('div');
+   detailGrid.className='route-detail-grid';
+   const pathwayBox=document.createElement('div');
+   pathwayBox.className='route-detail-box';
+   const pathwayLabel=document.createElement('strong');
+   pathwayLabel.textContent=detail.pathwayLabel;
+   const pathwayText=document.createElement('p');
+   pathwayText.textContent=step;
+   pathwayBox.append(pathwayLabel,pathwayText);
+   const actionBox=document.createElement('div');
+   actionBox.className='route-detail-box';
+   const actionLabel=document.createElement('strong');
+   actionLabel.textContent=detail.actionLabel;
+   const actionText=document.createElement('p');
+   actionText.textContent=detail.action;
+   actionBox.append(actionLabel,actionText);
+   detailGrid.append(pathwayBox,actionBox);
+   if(detail.spm && /SPM/i.test(step)){
+    const spmBox=document.createElement('div');
+    spmBox.className='route-detail-box route-spm-box';
+    const spmLabel=document.createElement('strong');
+    spmLabel.textContent=detail.spm.label;
+    const spmText=document.createElement('p');
+    spmText.textContent=detail.spm.text+'\n\n'+detail.spm.note;
+    spmBox.append(spmLabel,spmText);
+    detailGrid.appendChild(spmBox);
+   }
+   details.append(intro,detailGrid);
+
+   trigger.addEventListener('click',()=>{
+    const expanded=trigger.getAttribute('aria-expanded')==='true';
+    trigger.setAttribute('aria-expanded',String(!expanded));
+    details.hidden=expanded;
+   });
+   item.append(trigger,details);
+  routeSteps.appendChild(item);
+ });
+ resetCareerChat();
+ careerListView.style.display='none'; routeView.classList.add('open');
+}
+function closeCareerOverview(){
+ careerModal.classList.remove('open'); careerModal.setAttribute('aria-hidden','true');
+ careerListView.style.display='block'; routeView.classList.remove('open');
+}
+document.querySelectorAll('.overview-btn').forEach(btn=>btn.addEventListener('click',e=>{
+ e.stopPropagation(); openCareerOverview(btn.closest('.island-node').dataset.type);
+}));
+
+const minigameData = {
+ R: [
+  {title:'Automotive EV Technician', description:'Diagnose an electric vehicle in the EV Diagnostic Bay.', file:'Game - Automotive  EV Technician — EV Diagnostic Bay from the Realistic Island..html'},
+  {title:'Civil & Structural Engineer', description:'Test a bridge design and keep the structure within safe limits.', file:'Game - Civil  Structural Engineer — Bridge Stress from Realistic island.html'}
+ ],
+ I: [
+  {title:'Medical Laboratory Technologist', description:'Identify a pathogen by reading evidence from a virtual lab.', file:'Game - Medical Laboratory Technologist — 3D Pathogen Identifier from Investigative island.html'},
+  {title:'Data Scientist', description:'Investigate an anomaly core and find the signal in the data.', file:'Game - Data Scientist — 3D Anomaly Core from the Investigative Island..html'}
+ ],
+ A: [
+  {title:'3D Game Animator', description:'Match a character pose by tuning the rigged joints.', file:'Game - 3D Game Animator — Rigged Pose Matcher from art.html'},
+  {title:'UI/UX Designer', description:'Build a clearer interface and pass the accessibility audit.', file:'Game - UIUX Designer — Spatial App Studio From Art.html'}
+ ],
+ S: [
+  {title:'EMT Paramedic', description:'Assess a 3D triage scene and choose the right care priorities.', file:'Game - 3D Triage Scene. from social.html'},
+  {title:'Guidance Counsellor', description:'Navigate a dialogue and respond with empathy and clarity.', file:'Game - Guidance Counsellor — Dialogue Dynamics from social.html'}
+ ],
+ E: [
+  {title:'Marketing Specialist', description:'Build a campaign that balances reach, budget and impact.', file:'Game - Marketing Specialist — Campaign Arena. from enterpricing.html'},
+  {title:'Startup Founder', description:'Make growth decisions while managing capital burn rate.', file:'Game - Startup Founder — Capital Burn Rate. from enterpricing.html'}
+ ],
+ C: [
+  {title:'Logistics Coordinator', description:'Plan a reliable route network across the island.', file:'Game - Logistics Coordinator — Route Network. from conventional.html'},
+  {title:'Forensic Accountant', description:'Inspect a 3D ledger and uncover the accounting discrepancy.', file:'Game - Forensic Accountant — 3D Ledger Inspector. from conventional.html'}
+ ]
+};
+
+const minigameModal=document.getElementById('minigame-modal');
+const minigameList=document.getElementById('minigame-list');
+const minigameModalTitle=document.getElementById('minigame-modal-title');
+const minigameModalDescription=document.getElementById('minigame-modal-description');
+const minigameFrameWrap=document.getElementById('minigame-frame-wrap');
+const minigameFrame=document.getElementById('minigame-frame');
+const minigameCurrentTitle=document.getElementById('minigame-current-title');
+
+function showMinigameList(){
+ minigameFrame.src='about:blank';
+ minigameFrameWrap.classList.remove('open');
+ minigameList.style.display='grid';
+}
+
+function launchMinigame(game){
+ minigameList.style.display='none';
+ minigameFrameWrap.classList.add('open');
+ minigameCurrentTitle.textContent=game.title;
+ minigameFrame.title=game.title+' mini game';
+ minigameFrame.src=encodeURI(game.file);
+}
+
+function openMinigames(type){
+ const games=minigameData[type] || [];
+ const island=islands.find(node=>node.dataset.type===type);
+ const islandName=island ? island.querySelector('.island-title').textContent : type;
+ const isMalay=currentLang==='ms';
+ minigameModalTitle.textContent=isMalay ? islandName+' — Permainan Mini' : islandName+' — Mini Games';
+ minigameModalDescription.textContent=isMalay ? 'Pilih simulasi kerjaya untuk dimainkan.' : 'Choose a career simulation to play.';
+ minigameList.innerHTML='';
+ games.forEach(game=>{
+  const card=document.createElement('article');
+  card.className='minigame-card';
+  const copy=document.createElement('div');
+  copy.className='minigame-card-copy';
+  const title=document.createElement('h3');
+  title.textContent=game.title;
+  const description=document.createElement('p');
+  description.textContent=game.description;
+  copy.append(title,description);
+  const play=document.createElement('button');
+  play.type='button';
+  play.className='minigame-play';
+  play.textContent=isMalay ? 'Main sekarang' : 'Play now';
+  play.addEventListener('click',()=>launchMinigame(game));
+  card.append(copy,play);
+  minigameList.appendChild(card);
+ });
+ showMinigameList();
+ minigameModal.classList.add('open');
+ minigameModal.setAttribute('aria-hidden','false');
+}
+
+function closeMinigames(){
+ minigameModal.classList.remove('open');
+ minigameModal.setAttribute('aria-hidden','true');
+ showMinigameList();
+}
+
+document.querySelectorAll('.minigame-btn').forEach(btn=>btn.addEventListener('click',e=>{
+ e.stopPropagation();
+ openMinigames(btn.closest('.island-node').dataset.type);
+}));
+document.getElementById('minigame-close').addEventListener('click',closeMinigames);
+document.getElementById('minigame-back').addEventListener('click',showMinigameList);
+minigameModal.addEventListener('click',e=>{if(e.target===minigameModal)closeMinigames();});
+
+document.getElementById('career-close').addEventListener('click',closeCareerOverview);
+document.getElementById('career-back').addEventListener('click',()=>{
+ routeView.classList.remove('open'); careerListView.style.display='block';
+});
+careerModal.addEventListener('click',e=>{if(e.target===careerModal)closeCareerOverview();});
+document.addEventListener('keydown',e=>{
+ if(e.key!=='Escape') return;
+ if(minigameModal.classList.contains('open')) closeMinigames();
+ else closeCareerOverview();
+});
+
+// ---- AI chat: "ask about this career" ----
+const careerChat=document.getElementById('career-chat');
+const chatThread=document.getElementById('chat-thread');
+const chatForm=document.getElementById('chat-form');
+const chatInput=document.getElementById('chat-input');
+const chatSend=document.getElementById('chat-send');
+let sampleCapability=null;
+let chatTurns=[];
+let chatInFlight=false;
+
+const sampleReady=(async()=>{
+ if(!(window.claude && typeof window.claude.use==='function')) return null;
+ try{ return await window.claude.use('sample'); }catch(e){ return null; }
+})();
+sampleReady.then(cap=>{ sampleCapability=cap; refreshChatVisibility(); });
+
+function refreshChatVisibility(){
+ if(!careerChat) return;
+ careerChat.style.display = sampleCapability ? 'block' : 'none';
+}
+
+function resetCareerChat(){
+ chatTurns=[];
+ if(chatThread) chatThread.innerHTML='';
+ if(chatInput) chatInput.value='';
+ refreshChatVisibility();
+}
+
+function appendChatBubble(role,text){
+ const el=document.createElement('div');
+ el.className='chat-bubble '+role;
+ el.textContent=text;
+ chatThread.appendChild(el);
+ chatThread.scrollTop=chatThread.scrollHeight;
+ return el;
+}
+
+function buildCareerContext(){
+ const career=careerData[openCareerType].careers[openCareerIndex];
+ const [name,category,steps]=career;
+ const langLine = currentLang==='ms' ? 'Balas dalam Bahasa Melayu.' : 'Reply in English.';
+ return 'You are a friendly career-guidance assistant inside a Holland RIASEC '
+  +'career-exploration app called CareerVerse, aimed at Malaysian secondary/pre-university '
+  +'students. The student is currently looking at this career:\n\n'
+  +'Career: '+name+'\nCategory: '+category+'\n'
+  +'Typical Malaysian education pathway:\n'
+  +steps.map((s,i)=>(i+1)+'. '+s).join('\n')
+  +'\n\nAnswer the student\'s questions about this specific career (day-to-day work, '
+  +'skills needed, rough salary range in Malaysia if relevant, pros/cons, related careers, '
+  +'or how to explore it further). Keep answers short (3-6 sentences or a brief bullet list), '
+  +'encouraging and age-appropriate. If asked something unrelated to careers or education, '
+  +'gently steer back to career topics. '+langLine;
+}
+
+function chatErrorCopy(code){
+ const ms = currentLang==='ms';
+ if(code==='cancelled') return '';
+ if(code==='not_granted') return ms ? 'Ciri ini memerlukan kebenaran Claude anda.' : 'This feature needs your permission in Claude.';
+ if(code==='rate_limited') return ms ? 'Terlalu banyak permintaan buat masa ini. Cuba sebentar lagi.' : 'Too many requests right now — try again shortly.';
+ return ms ? 'Maaf, tidak dapat menjawab sekarang. Sila cuba lagi.' : "Sorry, couldn't get an answer just now. Please try again.";
+}
+
+if(chatForm){
+ chatForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(chatInFlight || !sampleCapability || !openCareerType) return;
+  const question=(chatInput.value||'').trim();
+  if(!question) return;
+  chatInput.value='';
+  appendChatBubble('user',question);
+  chatTurns.push({role:'user',content:question});
+  const thinkingCopy = currentLang==='ms' ? 'Sedang berfikir...' : 'Thinking...';
+  const answerEl=appendChatBubble('assistant',thinkingCopy);
+  chatInFlight=true;
+  chatSend.disabled=true;
+  try{
+   const turnsToSend=[{role:'user',content:buildCareerContext()}, ...chatTurns];
+   const {text}=await sampleCapability(turnsToSend,{
+    cache:false,
+    modelTier:'quick',
+    onText:({text})=>{ answerEl.textContent=text; chatThread.scrollTop=chatThread.scrollHeight; },
+   });
+   chatTurns.push({role:'assistant',content:text});
+  }catch(err){
+   const msg=chatErrorCopy(err && err.code);
+   if(msg) answerEl.textContent=msg; else answerEl.remove();
+  }finally{
+   chatInFlight=false;
+   chatSend.disabled=false;
+  }
+ });
+}
+</script>
+
+<script>
+const languageScreen = document.getElementById('language-screen');
+const languageButtons = document.querySelectorAll('.language-btn');
+let currentLang = 'ms';
+
+const islandCopy = {
+  R: { title: {en:'Realistic', ms:'Realistik'}, tagline: {en:'Build • Fix • Practical', ms:'Bina • Baiki • Praktikal'} },
+  I: { title: {en:'Investigative', ms:'Investigatif'}, tagline: {en:'Science • Data • Logic', ms:'Sains • Data • Logik'} },
+  A: { title: {en:'Artistic', ms:'Artistik'}, tagline: {en:'Art • Design • Creativity', ms:'Seni • Reka Bentuk • Kreativiti'} },
+  S: { title: {en:'Social', ms:'Sosial'}, tagline: {en:'Help • Teach • Guide', ms:'Bantu • Ajar • Bimbing'} },
+  E: { title: {en:'Enterprising', ms:'Enterprising'}, tagline: {en:'Lead • Business • Influence', ms:'Pimpin • Perniagaan • Pengaruh'} },
+  C: { title: {en:'Conventional', ms:'Konvensional'}, tagline: {en:'Data • Records • Systems', ms:'Data • Rekod • Sistem'} },
+};
+
+function applyIslandCopy(){
+  document.querySelectorAll('.island-node').forEach(node => {
+    const copy = islandCopy[node.dataset.type];
+    if (!copy) return;
+    const titleEl = node.querySelector('.island-title');
+    const tagEl = node.querySelector('.island-tagline');
+    if (titleEl) titleEl.textContent = copy.title[currentLang] || copy.title.en;
+    if (tagEl) tagEl.textContent = copy.tagline[currentLang] || copy.tagline.en;
+  });
+}
+
+const translations = {
+  en: {
+    welcomeKicker: 'WELCOME TO',
+    welcomeIntro: 'Explore the Holland RIASEC career world. Click an island to discover your career strengths!',
+    welcomeSub: 'Explore all six Holland RIASEC career worlds and discover the one that suits you best.',
+    startBtn: 'START EXPLORING →',
+    overviewBtn: '📚 Career Overview',
+    minigameBtn: '🎮 Mini Game',
+     prevIsland: '← PREVIOUS ISLAND',
+     nextIsland: 'NEXT ISLAND →',
+     islandJourney: 'ISLAND JOURNEY',
+    backToIslands: '← BACK TO ISLANDS',
+    careerBack: '← Back to careers',
+    chatTitle: '💬 Ask about this career',
+    chatSend: 'Send',
+    chatPlaceholder: 'Ask a question...',
+    routeNoteHtml: '<strong>Note:</strong> This is a typical example pathway in Malaysia. Entry requirements vary by institution and programme. Check current requirements and accreditation before applying. MQA\'s Malaysian Qualifications Register (MQR) is the reference for accredited higher-education programmes.'
+  },
+  ms: {
+    welcomeKicker: 'SELAMAT DATANG KE',
+    welcomeIntro: 'Terokai dunia kerjaya Holland RIASEC. Klik mana-mana pulau untuk mengenali kekuatan kerjaya anda!',
+    welcomeSub: 'Terokai enam dunia kerjaya Holland RIASEC dan temui dunia yang paling menarik untuk anda.',
+    startBtn: 'MULA PENGEMBARAAN →',
+    overviewBtn: '📚 Gambaran Kerjaya',
+    minigameBtn: '🎮 Permainan Mini',
+     prevIsland: '← PULAU SEBELUMNYA',
+     nextIsland: 'PULAU SETERUSNYA →',
+     islandJourney: 'PENGEMBARAAN PULAU',
+    backToIslands: '← KEMBALI KE PULAU',
+    careerBack: '← Kembali ke senarai kerjaya',
+    chatTitle: '💬 Tanya tentang kerjaya ini',
+    chatSend: 'Hantar',
+    chatPlaceholder: 'Tanya satu soalan...',
+    routeNoteHtml: '<strong>Nota:</strong> Ini merupakan contoh laluan biasa di Malaysia. Syarat kemasukan berbeza mengikut institusi dan program. Semak syarat semasa dan akreditasi sebelum memohon. Daftar Kelayakan Malaysia (MQR) oleh MQA adalah rujukan untuk program pengajian tinggi yang diiktiraf.'
+  }
+};
+
+function setLanguage(lang) {
+  currentLang = lang === 'ms' ? 'ms' : 'en';
+  const selected = translations[currentLang] || translations.en;
+  document.documentElement.lang = lang === 'ms' ? 'ms' : 'en';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (selected[key]) el.textContent = selected[key];
+  });
+
+  const careerBackBtn = document.getElementById('career-back');
+  if (careerBackBtn) careerBackBtn.textContent = selected.careerBack;
+  if (routeNote) routeNote.innerHTML = selected.routeNoteHtml;
+  const chatInputEl = document.getElementById('chat-input');
+  if (chatInputEl) chatInputEl.placeholder = selected.chatPlaceholder;
+
+  // Re-render an already-open career modal so it reflects the new language too.
+  if (openCareerType && careerModal.classList.contains('open')) {
+    openCareerOverview(openCareerType);
+  }
+
+  applyIslandCopy();
+
+  localStorage.setItem('careerverse-language', lang);
+  languageScreen.classList.add('hidden');
+  setTimeout(() => languageScreen.style.display = 'none', 650);
+}
+
+languageButtons.forEach(btn => {
+  btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+});
+
+localStorage.removeItem('careerverse-language');
+languageScreen.style.display = 'flex';
+</script>
+
+</body>
+</html>
+
+</body>
+</html>
