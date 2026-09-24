@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CareerVerse — Airfield Fix-It</title>
+  <style>
+    :root{
+      --ink:#153047;--muted:#60798b;--paper:#fffdf6;--cream:#fff3d5;
+      --teal:#087f8c;--teal-dark:#075766;--blue:#73c8ef;--coral:#ff8066;
+      --green:#31aa70;--yellow:#ffd166;--purple:#7569d4;
+      --shadow:0 18px 45px rgba(40,82,99,.17)
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 8% 4%,#fff 0 9%,transparent 27%),linear-gradient(135deg,#c8f3ff,#fff1d2 82%)}
+    button{font:inherit}
+    .app{width:min(1240px,100%);margin:auto;padding:20px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand-mark{display:grid;place-items:center;width:52px;height:52px;border-radius:17px;background:var(--teal);color:#fff;font-size:27px;box-shadow:0 9px 20px rgba(8,127,140,.28);transform:rotate(-5deg)}
+    .eyebrow{margin:0 0 3px;color:var(--teal-dark);font-size:11px;font-weight:950;letter-spacing:1.4px;text-transform:uppercase}
+    h1,h2,h3,p{margin-top:0}
+    .brand h1{margin:0;font-size:clamp(21px,3vw,31px);letter-spacing:-.8px}
+    .brand-sub{margin:2px 0 0;color:var(--muted);font-size:13px}
+    .manual-btn{border:1px solid rgba(8,127,140,.35);border-radius:13px;padding:11px 15px;background:#fff;color:var(--teal-dark);font-weight:950;cursor:pointer;box-shadow:0 7px 16px rgba(8,127,140,.1);white-space:nowrap}
+    .manual-btn:hover{background:#e7faf7;transform:translateY(-2px)}
+    .mission{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;padding:18px 20px;border:1px solid rgba(255,255,255,.78);border-radius:22px;background:rgba(255,255,255,.72);box-shadow:var(--shadow)}
+    .mission h2{margin:0 0 5px;font-size:clamp(20px,3vw,28px)}
+    .mission p:not(.eyebrow){margin:0;color:var(--muted);line-height:1.5}
+    .mission-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{padding:9px 12px;border-radius:999px;background:#e8fbf7;color:var(--teal-dark);font-size:12px;font-weight:950;white-space:nowrap}
+    .pill.timer{background:#fff0cc;color:#855915}
+    .layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(330px,.8fr);gap:16px}
+    .hangar,.workbench{border:1px solid rgba(255,255,255,.78);border-radius:24px;background:rgba(255,255,255,.75);box-shadow:var(--shadow)}
+    .hangar{padding:10px;overflow:hidden}
+    #plane-canvas{display:block;width:100%;height:auto;min-height:520px;border-radius:18px;background:#8fdcf3;cursor:crosshair}
+     .hotspot-tip{margin:9px 8px 1px;color:var(--muted);font-size:12px;font-weight:800}
+    .workbench{display:flex;flex-direction:column;gap:14px;padding:20px}
+    .bench-heading{display:flex;justify-content:space-between;gap:10px}
+    .bench-heading h2{margin:0 0 5px;font-size:21px}
+    .bench-heading p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+    .progress{min-width:83px;padding:8px 10px;border-radius:12px;background:#edf0ff;color:#51499d;font-size:11px;font-weight:950;text-align:center;white-space:nowrap}
+    .progress strong{display:block;font-size:19px}
+    .part-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .part-btn{display:flex;align-items:center;gap:8px;padding:10px;border:1.5px solid rgba(21,48,71,.13);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer;text-align:left;transition:transform .17s,border-color .17s,background .17s,box-shadow .17s}
+    .part-btn:hover{transform:translateY(-2px);border-color:var(--teal);box-shadow:0 7px 15px rgba(8,127,140,.1)}
+    .part-btn.selected{border-color:var(--teal);background:#e9fbf7;box-shadow:0 0 0 3px rgba(8,127,140,.11)}
+    .part-btn.done{border-color:rgba(49,170,112,.42)}
+    .part-icon{display:grid;place-items:center;flex:0 0 31px;width:31px;height:31px;border-radius:10px;background:#fff2d3;font-size:17px}
+    .part-btn:nth-child(2) .part-icon{background:#e4f2ff}.part-btn:nth-child(3) .part-icon{background:#eee8ff}.part-btn:nth-child(4) .part-icon{background:#e9f7df}.part-btn:nth-child(5) .part-icon{background:#ffe8e1}
+    .part-name{min-width:0;flex:1;font-size:12px;font-weight:900}
+    .part-status{font-size:15px}
+     .inspection{min-height:120px;padding:16px;border-radius:17px;background:#f4fbfa;border:1px solid rgba(8,127,140,.14)}
+    .inspection h3{margin:0 0 5px;font-size:19px}
+    .inspection p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+    .inspection .status-line{display:flex;align-items:center;gap:7px;margin:11px 0 0;color:var(--teal-dark);font-size:12px;font-weight:950}
+     .inspection-overlay{position:fixed;inset:0;z-index:15;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(10,42,58,.7);backdrop-filter:blur(8px)}
+     .inspection-overlay[hidden]{display:none}
+     .inspection-overlay.open{display:flex}
+     .inspection-dialog{width:min(470px,100%);max-height:90vh;overflow:auto;padding:24px;border:2px solid rgba(255,255,255,.8);border-radius:24px;background:var(--paper);box-shadow:0 25px 80px rgba(8,55,70,.38);animation:pop .24s ease-out}
+     .inspection-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+     .inspection-dialog-head h2{margin:0 0 12px;font-size:25px}
+     .inspection-dialog-copy{margin:0;color:var(--ink);font-size:15px;line-height:1.55}
+     .inspection-dialog .status-line{display:flex;align-items:center;gap:8px;margin:15px 0;color:var(--teal-dark);font-size:13px;font-weight:950}
+     .report-close-btn{width:100%;margin-top:14px;padding:12px;border:1px solid rgba(8,127,140,.3);border-radius:12px;background:#fff;color:var(--teal-dark);font-weight:950;cursor:pointer}
+     .report-close-btn:hover{background:#e8fbf7}
+    .status-dot{width:9px;height:9px;border-radius:50%;background:var(--yellow)}
+    .status-dot.bad{background:var(--coral)}.status-dot.good{background:var(--green)}
+     .repair-action{display:grid;gap:10px;padding:14px;border:1px solid rgba(255,128,102,.35);border-radius:17px;background:#fff8e7}
+     .repair-action[hidden]{display:none}
+     .repair-action h3{margin:0 0 3px;font-size:16px}
+     .repair-action p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+     .action-control{position:relative;display:block;width:100%;min-height:48px;overflow:hidden;padding:12px;border:0;border-radius:12px;background:var(--teal);color:#fff;font-weight:950;cursor:pointer;box-shadow:0 7px 14px rgba(8,127,140,.18)}
+     .action-control:hover{background:var(--teal-dark);transform:translateY(-1px)}
+     .action-control:active{transform:translateY(1px)}
+     .action-control .action-fill{position:absolute;inset:0 auto 0 0;width:0;background:rgba(255,255,255,.25);pointer-events:none;transition:width .08s linear}
+     .action-control .action-label{position:relative;z-index:1}
+     .action-control.holding{background:var(--teal-dark)}
+     .action-meter{height:8px;overflow:hidden;border-radius:999px;background:#eadfbf}
+     .action-meter span{display:block;width:0;height:100%;border-radius:inherit;background:var(--green);transition:width .12s ease}
+     .action-count{margin:0;text-align:center;color:#855915;font-size:11px;font-weight:950}
+     .switch-control{display:flex;align-items:center;justify-content:center;gap:10px}
+     .switch-control .switch{position:relative;width:44px;height:24px;border-radius:999px;background:#d8b369;transition:.2s}
+     .switch-control .switch:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+     .switch-control.on .switch{background:var(--green)}
+     .switch-control.on .switch:after{left:23px}
+    .tool-row{display:flex;gap:8px}
+    .tool-btn{flex:1;padding:12px 10px;border:0;border-radius:12px;background:var(--teal);color:#fff;font-weight:950;cursor:pointer;box-shadow:0 7px 14px rgba(8,127,140,.2)}
+    .tool-btn:hover{background:var(--teal-dark);transform:translateY(-2px)}
+    .tool-btn.secondary{background:#fff;border:1px solid rgba(8,127,140,.3);color:var(--teal-dark);box-shadow:none}
+    .tool-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+     .done-btn{width:100%;padding:13px;border:0;border-radius:13px;background:var(--green);color:#fff;font-weight:950;cursor:pointer;box-shadow:0 8px 16px rgba(49,170,112,.2)}
+     .done-btn:hover{background:#218b59;transform:translateY(-2px)}
+     .done-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .log{margin:0;padding:11px 13px;border-left:3px solid var(--yellow);border-radius:10px;background:#fff8e7;color:#735522;font-size:12px;line-height:1.5}
+    .manual-overlay{position:fixed;inset:0;z-index:10;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(10,42,58,.68);backdrop-filter:blur(8px)}
+    .manual-overlay.open{display:flex}
+     .timeup-overlay{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(10,42,58,.72);backdrop-filter:blur(8px)}
+     .timeup-overlay[hidden]{display:none}
+     .timeup-overlay.open{display:flex}
+     .timeup-card{width:min(440px,100%);padding:28px;border:2px solid rgba(255,255,255,.8);border-radius:25px;background:var(--paper);box-shadow:0 25px 80px rgba(8,55,70,.4);text-align:center;animation:pop .3s ease-out}
+     .timeup-icon{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 15px;border-radius:21px;background:#fff0cc;font-size:34px}
+     .timeup-card h2{margin:0 0 7px;font-size:30px}
+     .timeup-card p{margin:0;color:var(--muted);line-height:1.5}
+     .score-result{margin:22px 0;padding:18px;border-radius:17px;background:#e8fbf7;color:var(--teal-dark)}
+     .score-result strong{display:block;font-size:clamp(38px,10vw,52px);line-height:1.1;letter-spacing:-1px}
+     .score-result span{display:block;margin-top:5px;font-size:12px;font-weight:950;letter-spacing:1px;text-transform:uppercase}
+     .timeup-planes{margin-bottom:20px!important;font-weight:850}
+     .restart-btn{width:100%;padding:14px;border:0;border-radius:13px;background:var(--teal);color:#fff;font-weight:950;cursor:pointer;box-shadow:0 8px 16px rgba(8,127,140,.2)}
+     .restart-btn:hover{background:var(--teal-dark);transform:translateY(-2px)}
+    .manual{width:min(680px,100%);max-height:90vh;overflow:auto;padding:25px;border:2px solid rgba(255,255,255,.75);border-radius:24px;background:var(--paper);box-shadow:0 25px 80px rgba(8,55,70,.35)}
+    .manual-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}
+    .manual h2{margin:0 0 6px;font-size:27px}
+    .manual-head p{margin:0;color:var(--muted);line-height:1.5}
+    .close-manual{width:37px;height:37px;border:0;border-radius:50%;background:#e7f5f4;color:var(--teal-dark);font-size:22px;cursor:pointer}
+    .checklist{display:grid;gap:9px;margin:19px 0}
+    .step{display:grid;grid-template-columns:35px 1fr;gap:11px;align-items:start;padding:12px;border-radius:14px;background:#f5fbfa}
+    .step-number{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--teal);color:#fff;font-weight:950}
+    .step strong{display:block;margin:2px 0 3px;font-size:14px}
+    .step span{display:block;color:var(--muted);font-size:12px;line-height:1.45}
+    .manual-note{padding:12px 14px;border-radius:12px;background:#fff1c9;color:#765620;font-size:12px;line-height:1.5}
+    @keyframes pop{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:none}}
+     @media(max-width:900px){.layout{grid-template-columns:1fr}#plane-canvas{min-height:420px}.workbench{display:grid;grid-template-columns:1fr 1fr;align-content:start}.bench-heading,.inspection,.tool-row,.log{grid-column:1/-1}}
+    @media(max-width:620px){.app{padding:12px}.topbar,.mission{align-items:flex-start;flex-direction:column}.manual-btn{align-self:stretch}.mission-meta{justify-content:flex-start}.layout{display:block}.hangar{margin-bottom:12px}#plane-canvas{min-height:340px}.workbench{display:flex;padding:15px}.part-list{grid-template-columns:1fr 1fr}.tool-row{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">✈</div>
+        <div>
+          <p class="eyebrow">Realistic Island · 2D career game</p>
+          <h1>Airfield Fix-It</h1>
+          <p class="brand-sub">Make the plane safe before the next adventure.</p>
+        </div>
+      </div>
+      <button class="manual-btn" id="manual-open" type="button">📖 Open Manual</button>
+    </header>
+
+    <section class="mission" aria-live="polite">
+      <div>
+        <p class="eyebrow" id="mission-kicker">Pre-flight challenge</p>
+        <h2 id="mission-title">First Flight Check</h2>
+        <p id="mission-brief">The school science club is ready to fly. Inspect the plane and repair anything unsafe.</p>
+      </div>
+      <div class="mission-meta">
+         <span class="pill" id="planes-pill">✈️ 0 planes fixed</span>
+         <span class="pill timer" id="timer-pill">⏱ 02:00</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="hangar">
+        <canvas id="plane-canvas" aria-label="2D training plane with clickable inspection points"></canvas>
+        <p class="hotspot-tip">Double-click a glowing part to inspect it, or select a part and use Inspect part.</p>
+      </div>
+
+      <aside class="workbench">
+        <div class="bench-heading">
+          <div>
+            <h2>Mechanic’s bench</h2>
+            <p>Select a part, then inspect it to see the report and repair steps.</p>
+          </div>
+          <div class="progress"><strong id="progress-count">0/5</strong><span>checked</span></div>
+        </div>
+
+        <div class="part-list" id="part-list"></div>
+
+        <section class="inspection" id="inspection">
+          <h3 id="selected-name">Choose a part</h3>
+          <p id="selected-copy">Select a part, then use Inspect part or double-click it on the plane.</p>
+        </section>
+
+        <div class="tool-row">
+          <button class="tool-btn" id="inspect-btn" type="button">🔍 Inspect part</button>
+        </div>
+         <button class="done-btn" id="done-btn" type="button">✅ Done — send plane flying</button>
+        <p class="log" id="log">Mechanic’s radio: “No rush. Safe planes are built from careful checks.”</p>
+      </aside>
+    </section>
+  </main>
+
+  <div class="manual-overlay" id="manual-overlay" role="dialog" aria-modal="true" aria-labelledby="manual-title">
+    <section class="manual">
+      <div class="manual-head">
+        <div>
+          <p class="eyebrow">Quick guide</p>
+          <h2 id="manual-title">How to fix the plane</h2>
+          <p>You do not need aviation knowledge. Follow the checklist and learn what each part does.</p>
+        </div>
+        <button class="close-manual" id="manual-close" type="button" aria-label="Close manual">×</button>
+      </div>
+      <div class="checklist">
+        <div class="step"><span class="step-number">1</span><div><strong>Check the fuel ⛽</strong><span>The plane needs enough fuel for the trip. If the gauge is low, refuel it.</span></div></div>
+        <div class="step"><span class="step-number">2</span><div><strong>Check the landing tyres 🛞</strong><span>Tyres must be inflated and ready to absorb the landing.</span></div></div>
+        <div class="step"><span class="step-number">3</span><div><strong>Check the engine 🔧</strong><span>Listen for an unusual rattle. A loose belt or part needs tightening.</span></div></div>
+        <div class="step"><span class="step-number">4</span><div><strong>Check the lights 💡</strong><span>Navigation lights help other pilots see the plane, especially at night.</span></div></div>
+        <div class="step"><span class="step-number">5</span><div><strong>Check the wing bolts 🪽</strong><span>The wings must be secure before takeoff. Tighten any loose bolts.</span></div></div>
+      </div>
+      <p class="manual-note">Every mission has a different mix of issues. You can inspect and repair them in any order—the goal is to understand the checklist, not guess one magic answer.</p>
+    </section>
+  </div>
+
+  <div class="inspection-overlay" id="inspection-overlay" role="dialog" aria-modal="true" aria-labelledby="inspection-dialog-title" aria-describedby="inspection-dialog-copy" hidden>
+    <section class="inspection-dialog">
+      <div class="inspection-dialog-head">
+        <div>
+          <p class="eyebrow">Inspection report</p>
+          <h2 id="inspection-dialog-title">Part inspection</h2>
+        </div>
+        <button class="close-manual" id="inspection-close" type="button" aria-label="Close inspection report">×</button>
+      </div>
+      <p class="inspection-dialog-copy" id="inspection-dialog-copy"></p>
+      <div class="status-line"><span class="status-dot" id="status-dot"></span><span id="status-text"></span></div>
+      <section class="repair-action" id="repair-action" hidden aria-live="polite"></section>
+      <button class="report-close-btn" id="inspection-done" type="button">CLOSE REPORT</button>
+    </section>
+  </div>
+
+  <div class="timeup-overlay" id="timeup-overlay" role="dialog" aria-modal="true" aria-labelledby="timeup-title" aria-describedby="timeup-copy" hidden>
+    <section class="timeup-card">
+      <div class="timeup-icon" aria-hidden="true">⏰</div>
+      <p class="eyebrow">Airfield shift complete</p>
+      <h2 id="timeup-title">Time’s up!</h2>
+      <p id="timeup-copy">Your final score is ready.</p>
+      <div class="score-result"><strong id="timeup-score">0</strong><span>Final score</span></div>
+      <p class="timeup-planes" id="timeup-planes"></p>
+      <button class="restart-btn" id="restart-btn" type="button">PLAY AGAIN ↻</button>
+    </section>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('plane-canvas');
+    const ctx = canvas.getContext('2d');
+    const parts = [
+      {id:'fuel',icon:'⛽',name:'Fuel tank',healthy:'Fuel level is good.',fault:'Fuel is too low for this mission.',fix:'Refuel the tank before takeoff.',spot:[.39,.5]},
+      {id:'tyres',icon:'🛞',name:'Landing tyres',healthy:'Tyres are inflated.',fault:'The left tyre is soft.',fix:'Inflate the landing tyre.',spot:[.6,.58]},
+      {id:'engine',icon:'🔧',name:'Engine',healthy:'Engine sounds smooth.',fault:'There is a loose engine belt.',fix:'Tighten the engine belt.',spot:[.63,.5]},
+      {id:'lights',icon:'💡',name:'Navigation lights',healthy:'All lights are working.',fault:'The red navigation light is out.',fix:'Replace the light fuse.',spot:[.89,.5]},
+      {id:'wing',icon:'🪽',name:'Wing bolts',healthy:'Wing bolts are secure.',fault:'Two wing bolts are loose.',fix:'Secure the wing bolts.',spot:[.53,.3]}
+    ];
+    const missions = [
+      {title:'First Flight Check',brief:'The school science club is ready to fly. Inspect the plane and repair anything unsafe.',faults:['fuel','tyres','lights'],radio:'Mechanic’s radio: “A careful checklist beats a lucky guess.”'},
+      {title:'Rainy Day Practice',brief:'The weather changed overnight. Make this training plane safe for a bumpy practice flight.',faults:['engine','wing','fuel'],radio:'Mechanic’s radio: “Listen closely—small clues can prevent big problems.”'},
+      {title:'Night Navigation',brief:'The astronomy club is heading out after sunset. Make sure the plane can be seen and land safely.',faults:['lights','tyres','wing'],radio:'Mechanic’s radio: “The sky is dark, so your checks need to be bright.”'},
+      {title:'Island Supply Run',brief:'The community centre is waiting for supplies. Get the aircraft ready without skipping the basics.',faults:['fuel','engine','tyres','wing'],radio:'Mechanic’s radio: “Different mission, same rule: inspect before you fix.”'},
+      {title:'Final Skills Test',brief:'You are the lead student mechanic today. Find every issue and sign off the plane.',faults:['fuel','lights','engine'],radio:'Mechanic’s radio: “You know the routine now. Trust the checklist.”'}
+    ];
+
+    let round = 0;
+    let score = 0;
+    let selectedId = 'fuel';
+    let checked = new Set();
+    let fixed = new Set();
+    let faults = new Set();
+     let seconds = 120;
+    let finished = false;
+     let sessionOver = false;
+     let sessionStarted = false;
+     let planesFixed = 0;
+    let timerId;
+     let animationId;
+    let canvasRatio = 1;
+     let repairProgress = 0;
+     let fuelHoldTimer;
+     let fuelHolding = false;
+     let planeFlying = false;
+     let planeFlyStarted = 0;
+      let advanceTimer;
+
+    const selectedPart = () => parts.find(part => part.id === selectedId);
+    const currentMission = () => missions[round % missions.length];
+    const byId = id => document.getElementById(id);
+
+     function startMission(newSession = false){
+       if(newSession){
+         round = 0;
+         score = 0;
+         seconds = 120;
+         planesFixed = 0;
+         sessionOver = false;
+         sessionStarted = true;
+         planeFlying = false;
+         updateSessionStats();
+       }else if(!sessionStarted){
+         seconds = 120;
+         sessionStarted = true;
+       }
+       const mission = currentMission();
+       stopFuelHold();
+       clearTimeout(advanceTimer);
+       faults = randomizeFaults();
+      checked = new Set();
+      fixed = new Set();
+      finished = false;
+       planeFlying = false;
+      selectedId = 'fuel';
+       repairProgress = 0;
+      byId('mission-title').textContent = mission.title;
+      byId('mission-brief').textContent = mission.brief;
+      byId('mission-kicker').textContent = `Pre-flight challenge · mission ${round + 1}`;
+       closeInspectionPopup();
+       byId('timeup-overlay').classList.remove('open');
+       byId('timeup-overlay').hidden = true;
+      byId('log').textContent = mission.radio;
+      byId('inspect-btn').disabled = false;
+       byId('done-btn').disabled = false;
+       byId('timer-pill').textContent = formatTime(seconds);
+      clearInterval(timerId);
+       if(!sessionOver) timerId = setInterval(tick,1000);
+      renderParts();
+      renderSelected();
+      resizeCanvas();
+    }
+
+     function randomizeFaults(){
+       const shuffled = [...parts].sort(() => Math.random() - 0.5);
+       const issueCount = Math.floor(Math.random() * parts.length) + 1;
+       return new Set(shuffled.slice(0,issueCount).map(part => part.id));
+     }
+
+    function tick(){
+       if(sessionOver) return;
+      seconds = Math.max(0,seconds - 1);
+       byId('timer-pill').textContent = formatTime(seconds);
+      if(seconds === 0){
+         endSession();
+      }
+    }
+
+     function formatTime(value){
+       const mins = String(Math.floor(value / 60)).padStart(2,'0');
+       const secs = String(value % 60).padStart(2,'0');
+       return `⏱ ${mins}:${secs}`;
+     }
+
+     function updateSessionStats(){
+       byId('planes-pill').textContent = `✈️ ${planesFixed} plane${planesFixed === 1 ? '' : 's'} fixed`;
+     }
+
+    function renderParts(){
+      const list = byId('part-list');
+      list.innerHTML = '';
+      parts.forEach(part => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `part-btn${part.id === selectedId ? ' selected' : ''}${checked.has(part.id) && (!faults.has(part.id) || fixed.has(part.id)) ? ' done' : ''}`;
+         button.dataset.partId = part.id;
+        button.innerHTML = `<span class="part-icon">${part.icon}</span><span class="part-name">${part.name}</span><span class="part-status">${fixed.has(part.id) || (checked.has(part.id) && !faults.has(part.id)) ? '✅' : checked.has(part.id) ? '⚠️' : '○'}</span>`;
+        button.addEventListener('click', () => selectPart(part.id));
+         button.addEventListener('dblclick', () => {
+           if(finished) return;
+           selectPart(part.id);
+           inspect();
+         });
+        list.appendChild(button);
+      });
+      byId('progress-count').textContent = `${checked.size}/5`;
+    }
+
+    function selectPart(id){
+      if(finished) return;
+       stopFuelHold();
+      selectedId = id;
+       repairProgress = 0;
+      document.querySelectorAll('.part-btn').forEach(button => {
+        button.classList.toggle('selected',button.dataset.partId === id);
+      });
+      renderSelected();
+      draw();
+    }
+
+    function renderSelected(){
+      const part = selectedPart();
+      if(!part) return;
+      byId('selected-name').textContent = `${part.icon} ${part.name}`;
+      if(fixed.has(part.id)){
+         byId('selected-copy').textContent = 'This part has been repaired and is ready for takeoff.';
+      }else if(checked.has(part.id)){
+         byId('selected-copy').textContent = 'Inspection complete. Open the report to review this part.';
+      }else{
+         byId('selected-copy').textContent = 'Use Inspect part or double-click this part on the plane.';
+      }
+       renderRepairAction();
+    }
+
+    function setStatus(kind,text){
+      const dot = byId('status-dot');
+      dot.className = `status-dot${kind ? ` ${kind}` : ''}`;
+      byId('status-text').textContent = text;
+    }
+
+    function inspect(){
+      if(finished) return;
+       stopFuelHold();
+       repairProgress = 0;
+      const part = selectedPart();
+       if(!part) return;
+      checked.add(part.id);
+      renderParts();
+      renderSelected();
+      byId('log').textContent = faults.has(part.id)
+         ? 'Inspection report opened. Follow the repair steps in the popup.'
+         : 'No issue found. The inspection report is open.';
+      draw();
+       showInspectionPopup(part);
+      checkFinished();
+    }
+
+     function completeRepair(){
+      if(finished) return;
+      const part = selectedPart();
+       if(!part || !checked.has(part.id) || !faults.has(part.id) || fixed.has(part.id)) return;
+       stopFuelHold();
+      fixed.add(part.id);
+       repairProgress = 0;
+      score += 75;
+       byId('log').textContent = 'Repair complete. The inspection report has been updated.';
+      renderParts();
+      renderSelected();
+      draw();
+       showInspectionPopup(part);
+      checkFinished();
+    }
+
+     function stopFuelHold(){
+       fuelHolding = false;
+       clearInterval(fuelHoldTimer);
+       fuelHoldTimer = null;
+     }
+
+     function startFuelHold(){
+       if(fuelHolding || finished) return;
+       fuelHolding = true;
+       const button = byId('fuel-hold');
+       if(button) button.classList.add('holding');
+       fuelHoldTimer = setInterval(() => {
+         repairProgress = Math.min(1,repairProgress + .045);
+         const fill = byId('fuel-fill');
+         if(fill) fill.style.width = `${repairProgress * 100}%`;
+         const meter = byId('fuel-meter');
+         if(meter) meter.style.width = `${repairProgress * 100}%`;
+         if(repairProgress >= 1){
+           stopFuelHold();
+           completeRepair();
+         }
+       },70);
+     }
+
+     function renderRepairAction(){
+       const box = byId('repair-action');
+       const part = selectedPart();
+       stopFuelHold();
+       if(!part || !checked.has(part.id) || !faults.has(part.id) || fixed.has(part.id)){
+         box.hidden = true;
+         box.innerHTML = '';
+         return;
+       }
+       box.hidden = false;
+       const common = `<div><h3>🛠️ ${part.fix}</h3><p>Do the simple action below to finish this repair.</p></div>`;
+       if(part.id === 'fuel'){
+         box.innerHTML = `${common}<button class="action-control" id="fuel-hold" type="button"><span class="action-fill" id="fuel-fill"></span><span class="action-label">⛽ Hold to refill</span></button><div class="action-meter"><span id="fuel-meter"></span></div><p class="action-count">Keep holding until the tank is full.</p>`;
+         byId('fuel-hold').addEventListener('pointerdown',startFuelHold);
+         ['pointerup','pointercancel','pointerleave'].forEach(type => byId('fuel-hold').addEventListener(type,stopFuelHold));
+       }else if(part.id === 'lights'){
+         box.innerHTML = `${common}<button class="action-control switch-control" id="light-switch" type="button"><span class="switch" aria-hidden="true"></span><span>Flip the light switch ON</span></button>`;
+         byId('light-switch').addEventListener('click',completeRepair);
+       }else if(part.id === 'tyres'){
+         box.innerHTML = `${common}<button class="action-control" id="tyre-pump" type="button">🛞 Pump tyre</button><p class="action-count" id="action-count">0 / 6 pumps</p>`;
+         byId('tyre-pump').addEventListener('click',() => {
+           repairProgress = Math.min(6,repairProgress + 1);
+           byId('action-count').textContent = `${repairProgress} / 6 pumps`;
+           if(repairProgress >= 6) completeRepair();
+         });
+       }else if(part.id === 'engine'){
+         box.innerHTML = `${common}<button class="action-control" id="engine-wrench" type="button">🔧 Turn wrench</button><p class="action-count" id="action-count">0 / 4 turns</p>`;
+         byId('engine-wrench').addEventListener('click',() => {
+           repairProgress = Math.min(4,repairProgress + 1);
+           byId('action-count').textContent = `${repairProgress} / 4 turns`;
+           if(repairProgress >= 4) completeRepair();
+         });
+       }else{
+         box.innerHTML = `${common}<button class="action-control" id="wing-bolt" type="button">🪽 Tighten bolt</button><p class="action-count" id="action-count">0 / 2 bolts</p>`;
+         byId('wing-bolt').addEventListener('click',() => {
+           repairProgress = Math.min(2,repairProgress + 1);
+           byId('action-count').textContent = `${repairProgress} / 2 bolts`;
+           if(repairProgress >= 2) completeRepair();
+         });
+       }
+     }
+
+      function checkFinished(){
+        if(fixed.size === faults.size && checked.size === parts.length && !finished){
+          byId('log').textContent = 'Every part has been inspected and every issue is fixed. The plane is taking off automatically.';
+          submitPlane();
+        }
+      }
+
+      function showInspectionPopup(part){
+        if(!part) return;
+        const overlay = byId('inspection-overlay');
+        byId('inspection-dialog-title').textContent = `${part.icon} ${part.name}`;
+        if(fixed.has(part.id)){
+          byId('inspection-dialog-copy').textContent = `${part.fix} This part is repaired and ready for takeoff.`;
+          setStatus('good','Repaired and ready');
+        }else if(faults.has(part.id)){
+          byId('inspection-dialog-copy').textContent = part.fault;
+          setStatus('bad','Needs repair');
+        }else{
+          byId('inspection-dialog-copy').textContent = part.healthy;
+          setStatus('good','No issue found');
+        }
+        overlay.hidden = false;
+        overlay.classList.add('open');
+        byId('inspection-close').focus();
+      }
+
+      function closeInspectionPopup(){
+        const overlay = byId('inspection-overlay');
+        if(!overlay) return;
+        stopFuelHold();
+        overlay.classList.remove('open');
+        overlay.hidden = true;
+      }
+
+     function submitPlane(){
+       if(finished || sessionOver) return;
+        const outstandingPart = parts.find(part => faults.has(part.id) && !fixed.has(part.id));
+        if(outstandingPart){
+          selectedId = outstandingPart.id;
+          checked.add(outstandingPart.id);
+          renderParts();
+          renderSelected();
+          draw();
+          byId('log').textContent = 'This plane still has a problem to fix. The inspection report is open.';
+          showInspectionPopup(outstandingPart);
+          return;
+       }
+
+        finished = true;
+        byId('inspect-btn').disabled = true;
+        byId('done-btn').disabled = true;
+        closeInspectionPopup();
+        planesFixed += 1;
+        score += 150 + seconds * 2;
+        planeFlying = true;
+        planeFlyStarted = Date.now();
+        updateSessionStats();
+        byId('log').textContent = 'Control tower: cleared for takeoff!';
+        advanceTimer = setTimeout(() => {
+          if(!sessionOver){
+            round += 1;
+            startMission();
+          }
+        },2200);
+       draw();
+     }
+
+     function endSession(){
+       if(sessionOver) return;
+       sessionOver = true;
+       finished = true;
+       clearInterval(timerId);
+        clearTimeout(advanceTimer);
+       stopFuelHold();
+       byId('inspect-btn').disabled = true;
+       byId('done-btn').disabled = true;
+        closeInspectionPopup();
+       byId('log').textContent = 'Control tower: shift complete.';
+        byId('timeup-copy').textContent = 'Your two-minute airfield shift is complete. Here are your results.';
+        byId('timeup-score').textContent = score.toLocaleString();
+        byId('timeup-planes').textContent = `You safely prepared ${planesFixed} plane${planesFixed === 1 ? '' : 's'}.`;
+        byId('timeup-overlay').hidden = false;
+        byId('timeup-overlay').classList.add('open');
+    }
+
+    function openManual(){byId('manual-overlay').classList.add('open');}
+    function closeManual(){byId('manual-overlay').classList.remove('open');}
+
+    function resizeCanvas(){
+      const rect = canvas.getBoundingClientRect();
+      canvasRatio = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1,Math.floor(rect.width * canvasRatio));
+      canvas.height = Math.max(1,Math.floor(rect.height * canvasRatio));
+      ctx.setTransform(canvasRatio,0,0,canvasRatio,0,0);
+      draw();
+    }
+
+    function pointFor(part){
+      const rect = canvas.getBoundingClientRect();
+      return {x:rect.width * part.spot[0],y:rect.height * part.spot[1]};
+    }
+
+    function drawCloud(x,y,s){
+      ctx.save();ctx.fillStyle='rgba(255,255,255,.68)';ctx.beginPath();ctx.arc(x,y,19*s,Math.PI,0);ctx.arc(x+22*s,y-6*s,23*s,Math.PI,0);ctx.arc(x+48*s,y,17*s,Math.PI,0);ctx.lineTo(x+65*s,y+15*s);ctx.lineTo(x-3*s,y+15*s);ctx.closePath();ctx.fill();ctx.restore();
+    }
+
+    function draw(){
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width; const h = rect.height;
+      if(!w || !h) return;
+      ctx.clearRect(0,0,w,h);
+      const sky = ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#82d9f1');sky.addColorStop(.62,'#d7f6ed');sky.addColorStop(1,'#ffe5b5');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+      ctx.fillStyle='rgba(255,255,255,.48)';ctx.beginPath();ctx.arc(w*.82,h*.16,44,0,Math.PI*2);ctx.fill();
+      drawCloud(w*.12,h*.16,.75);drawCloud(w*.6,h*.12,.5);drawCloud(w*.73,h*.72,.6);
+      ctx.fillStyle='#8bcebc';ctx.fillRect(0,h*.78,w,h*.22);
+      ctx.strokeStyle='rgba(255,255,255,.46)';ctx.lineWidth=2;for(let i=0;i<7;i++){ctx.beginPath();ctx.moveTo(w*(.05+i*.16),h*.88);ctx.lineTo(w*(.11+i*.16),h*.88);ctx.stroke()}
+      ctx.fillStyle='rgba(36,97,112,.18)';ctx.fillRect(w*.06,h*.58,w*.88,7);
+      ctx.fillStyle='#e7f1f0';ctx.fillRect(w*.1,h*.59,w*.8,4);
+      ctx.fillStyle='#8eafbb';ctx.fillRect(w*.17,h*.23,w*.03,h*.35);ctx.fillRect(w*.8,h*.22,w*.03,h*.36);
+      ctx.fillStyle='#b4cdd0';ctx.fillRect(w*.12,h*.18,w*.76,8);
+        const flightSeconds = planeFlying ? Math.min(1.7,(Date.now() - planeFlyStarted) / 1000) : 0;
+        const flightX = planeFlying ? flightSeconds * w * .42 : 0;
+        const flightY = planeFlying ? flightSeconds * -h * .15 : 0;
+        ctx.save();
+        ctx.translate(w*.5 + Math.sin(Date.now()/1700)*2 + flightX,h*.5 + flightY);
+        ctx.lineJoin='round';
+        ctx.lineCap='round';
+        ctx.fillStyle='rgba(15,66,84,.18)';
+        ctx.beginPath();ctx.ellipse(0,h*.12,w*.27,12,0,0,Math.PI*2);ctx.fill();
+
+        // The wings and tail sit behind the fuselage so the silhouette reads as a small plane.
+        ctx.fillStyle='#dce9e8';ctx.strokeStyle='#145a70';ctx.lineWidth=3;
+        ctx.beginPath();
+        ctx.moveTo(-w*.13,-13);ctx.lineTo(-w*.06,-h*.24);ctx.lineTo(w*.17,-h*.28);
+        ctx.lineTo(w*.12,-10);ctx.closePath();ctx.fill();ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-w*.14,13);ctx.lineTo(-w*.09,h*.25);ctx.lineTo(w*.16,h*.22);
+        ctx.lineTo(w*.12,10);ctx.closePath();ctx.fill();ctx.stroke();
+        ctx.fillStyle='#f8faf5';
+        ctx.beginPath();ctx.moveTo(-w*.29,-9);ctx.lineTo(-w*.39,-h*.1);
+        ctx.lineTo(-w*.22,-14);ctx.closePath();ctx.fill();ctx.stroke();
+        ctx.beginPath();ctx.moveTo(-w*.29,9);ctx.lineTo(-w*.39,h*.1);
+        ctx.lineTo(-w*.22,14);ctx.closePath();ctx.fill();ctx.stroke();
+        ctx.fillStyle='#ff8066';
+        ctx.beginPath();ctx.moveTo(-w*.33,-7);ctx.lineTo(-w*.36,-h*.14);
+        ctx.lineTo(-w*.23,-17);ctx.lineTo(-w*.25,-5);ctx.closePath();ctx.fill();ctx.stroke();
+
+        // Rounded body with a tapered tail and a clear forward-facing nose.
+        ctx.fillStyle='#f8faf5';ctx.strokeStyle='#145a70';ctx.lineWidth=3;
+        ctx.beginPath();
+        ctx.moveTo(-w*.37,0);
+        ctx.bezierCurveTo(-w*.35,-13,-w*.29,-20,-w*.18,-22);
+        ctx.lineTo(w*.22,-22);
+        ctx.bezierCurveTo(w*.34,-22,w*.39,-12,w*.405,0);
+        ctx.bezierCurveTo(w*.39,12,w*.34,22,w*.22,22);
+        ctx.lineTo(-w*.18,22);
+        ctx.bezierCurveTo(-w*.29,20,-w*.35,13,-w*.37,0);
+        ctx.closePath();ctx.fill();ctx.stroke();
+        ctx.fillStyle='#087f8c';
+        ctx.beginPath();ctx.moveTo(-w*.22,11);ctx.lineTo(w*.22,11);
+        ctx.lineTo(w*.27,6);ctx.lineTo(-w*.25,6);ctx.closePath();ctx.fill();
+
+        ctx.fillStyle='#bfeaf2';ctx.strokeStyle='#4b9eb1';ctx.lineWidth=2;
+        for(let i=-1;i<=3;i++){
+          ctx.beginPath();ctx.roundRect(i*w*.065-w*.015,-15,w*.033,12,5);ctx.fill();ctx.stroke();
+        }
+        ctx.fillStyle='#173b50';
+        ctx.beginPath();ctx.moveTo(w*.25,-17);ctx.quadraticCurveTo(w*.33,-12,w*.35,-3);
+        ctx.lineTo(w*.27,-3);ctx.closePath();ctx.fill();
+
+        // Visible landing gear and a spinning nose propeller.
+        ctx.strokeStyle='#526f7a';ctx.lineWidth=3;
+        [-w*.08,w*.15].forEach(x=>{
+          ctx.beginPath();ctx.moveTo(x,17);ctx.lineTo(x+3,30);ctx.stroke();
+          ctx.fillStyle='#173b50';ctx.beginPath();ctx.arc(x+3,33,6,0,Math.PI*2);ctx.fill();
+        });
+        ctx.strokeStyle='#145a70';ctx.lineWidth=4;
+        ctx.beginPath();ctx.moveTo(w*.405,-15);ctx.lineTo(w*.405,15);ctx.stroke();
+        ctx.beginPath();ctx.arc(w*.405,0,4,0,Math.PI*2);ctx.fillStyle='#ff8066';ctx.fill();ctx.stroke();
+        ctx.restore();
+      parts.forEach(part => {
+        const p = pointFor(part);const active = part.id === selectedId;const complete = fixed.has(part.id) || (checked.has(part.id) && !faults.has(part.id));
+        ctx.save();ctx.globalAlpha=active ? 1 : .82;ctx.fillStyle=complete ? '#31aa70' : faults.has(part.id) && checked.has(part.id) ? '#ff8066' : '#ffd166';ctx.beginPath();ctx.arc(p.x,p.y,active ? 17 : 12,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#153047';ctx.font='900 14px system-ui';ctx.textAlign='center';ctx.fillText(complete ? '✓' : checked.has(part.id) ? '!' : '?',p.x,p.y+5);ctx.restore();
+      });
+      ctx.fillStyle='#075766';ctx.font='900 12px system-ui';ctx.textAlign='left';ctx.fillText('TRAINING HANGAR',w*.05,h*.1);
+    }
+
+    canvas.addEventListener('click',event => {
+      if(finished) return;
+      const rect = canvas.getBoundingClientRect();const x=event.clientX-rect.left;const y=event.clientY-rect.top;
+      const hit = parts.find(part => {const p=pointFor(part);return Math.hypot(p.x-x,p.y-y)<30});
+      if(hit) selectPart(hit.id);
+    });
+    canvas.addEventListener('dblclick',event => {
+      if(finished) return;
+      const rect = canvas.getBoundingClientRect();const x=event.clientX-rect.left;const y=event.clientY-rect.top;
+      const hit = parts.find(part => {const p=pointFor(part);return Math.hypot(p.x-x,p.y-y)<30});
+      if(hit){
+        selectPart(hit.id);
+        inspect();
+      }
+    });
+    byId('inspect-btn').addEventListener('click',inspect);
+     byId('done-btn').addEventListener('click',submitPlane);
+      byId('restart-btn').addEventListener('click',()=>startMission(true));
+      byId('inspection-close').addEventListener('click',closeInspectionPopup);
+      byId('inspection-done').addEventListener('click',closeInspectionPopup);
+      byId('inspection-overlay').addEventListener('click',event=>{if(event.target === byId('inspection-overlay')) closeInspectionPopup();});
+    byId('manual-open').addEventListener('click',openManual);
+    byId('manual-close').addEventListener('click',closeManual);
+    byId('manual-overlay').addEventListener('click',event=>{if(event.target === byId('manual-overlay')) closeManual();});
+    document.addEventListener('keydown',event=>{if(event.key === 'Escape'){closeManual();closeInspectionPopup();}});
+    window.addEventListener('resize',resizeCanvas);
+     startMission(true);
+    setInterval(draw,120);
+  </script>
+</body>
+</html>
