@@ -302,7 +302,11 @@
  .minigame-card{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(255,255,255,.08)}
  .minigame-card-copy{min-width:0}.minigame-card h3{margin:0 0 5px;font-size:18px}.minigame-card p{margin:0;color:rgba(255,255,255,.65);font-size:13px;line-height:1.45}
  .minigame-play{border:0;border-radius:12px;padding:11px 15px;background:#fde68a;color:#164e63;font-weight:900;cursor:pointer;white-space:nowrap}
- .minigame-play:hover{transform:translateY(-2px);background:#fff}
+  .minigame-play:hover{transform:translateY(-2px);background:#fff}
+  .minigame-coming-soon{display:grid;place-items:center;gap:8px;min-height:240px;padding:28px;text-align:center;border:1px dashed rgba(253,230,138,.5);border-radius:20px;background:linear-gradient(135deg,rgba(253,230,138,.13),rgba(255,255,255,.06))}
+  .minigame-coming-soon .coming-soon-icon{font-size:44px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.2))}
+  .minigame-coming-soon h3{margin:0;font-size:24px;color:#fde68a}
+  .minigame-coming-soon p{max-width:440px;margin:0;color:rgba(255,255,255,.75);line-height:1.55}
  .minigame-frame-wrap{display:none;height:100%;min-height:0;flex-direction:column;gap:12px}
  .minigame-frame-wrap.open{display:flex}
  .minigame-frame-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -923,7 +927,7 @@ document.querySelectorAll('.overview-btn').forEach(btn=>btn.addEventListener('cl
  e.stopPropagation(); openCareerOverview(btn.closest('.island-node').dataset.type);
 }));
 
-const minigameData = {
+/* const minigameData = {
  R: [
   {title:'Automotive EV Technician', description:'Diagnose an electric vehicle in the EV Diagnostic Bay.', file:'Game - Automotive  EV Technician — EV Diagnostic Bay from the Realistic Island..html'},
   {title:'Civil & Structural Engineer', description:'Test a bridge design and keep the structure within safe limits.', file:'Game - Civil  Structural Engineer — Bridge Stress from Realistic island.html'}
@@ -948,7 +952,14 @@ const minigameData = {
   {title:'Logistics Coordinator', description:'Plan a reliable route network across the island.', file:'Game - Logistics Coordinator — Route Network. from conventional.html'},
   {title:'Forensic Accountant', description:'Inspect a 3D ledger and uncover the accounting discrepancy.', file:'Game - Forensic Accountant — 3D Ledger Inspector. from conventional.html'}
  ]
-};
+}; */
+const minigameData = { R: [], I: [], A: [], S: [], E: [], C: [] };
+
+// Keep the first release focused: only the Realistic Island has a playable game.
+minigameData.R = [
+ {title:'Airfield Fix-It', description:'Inspect and repair a training plane before takeoff. Follow the manual, spot the faults, and make the aircraft safe.', file:'Airfield_Fix-It_2D_1790237711126.html'}
+];
+['I','A','S','E','C'].forEach(type=>{ minigameData[type]=[]; });
 
 const minigameModal=document.getElementById('minigame-modal');
 const minigameList=document.getElementById('minigame-list');
@@ -978,8 +989,20 @@ function openMinigames(type){
  const islandName=island ? island.querySelector('.island-title').textContent : type;
  const isMalay=currentLang==='ms';
  minigameModalTitle.textContent=isMalay ? islandName+' — Permainan Mini' : islandName+' — Mini Games';
- minigameModalDescription.textContent=isMalay ? 'Pilih simulasi kerjaya untuk dimainkan.' : 'Choose a career simulation to play.';
+  minigameModalDescription.textContent=games.length
+   ? (isMalay ? 'Pilih simulasi kerjaya untuk dimainkan.' : 'Choose a career simulation to play.')
+   : (isMalay ? 'Permainan untuk pulau ini sedang dibina.' : 'The game for this island is still being built.');
  minigameList.innerHTML='';
+  if(!games.length){
+   const card=document.createElement('article');
+   card.className='minigame-coming-soon';
+   card.innerHTML='<div class="coming-soon-icon" aria-hidden="true">🛠️</div><h3>'
+    +(isMalay ? 'Akan datang!' : 'Coming soon!')
+    +'</h3><p>'
+    +(isMalay ? 'Kami sedang membina permainan 2D yang lebih menyeronokkan untuk pulau ini. Buat masa ini, cuba Pulau Realistik.' : 'We are rebuilding this island with a more fun 2D career game. For now, try the Realistic Island.')
+    +'</p>';
+   minigameList.appendChild(card);
+  }
  games.forEach(game=>{
   const card=document.createElement('article');
   card.className='minigame-card';
