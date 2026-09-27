@@ -976,15 +976,16 @@ function showMinigameList(){
 }
 
 function launchMinigame(game){
- minigameList.style.display='none';
- minigameFrameWrap.classList.add('open');
- minigameCurrentTitle.textContent=game.title;
- minigameFrame.title=game.title+' mini game';
- minigameFrame.src=encodeURI(game.file);
+ // Playable games open as full pages instead of being squeezed into the modal iframe.
+ window.location.assign(encodeURI(game.file));
 }
 
 function openMinigames(type){
  const games=minigameData[type] || [];
+ if(games.length === 1){
+  launchMinigame(games[0]);
+  return;
+ }
  const island=islands.find(node=>node.dataset.type===type);
  const islandName=island ? island.querySelector('.island-title').textContent : type;
  const isMalay=currentLang==='ms';
