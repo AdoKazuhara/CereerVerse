@@ -15,18 +15,19 @@
     body{margin:0;min-height:100vh;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 8% 4%,#fff 0 9%,transparent 27%),linear-gradient(135deg,#c8f3ff,#fff1d2 82%)}
     button{font:inherit}
     .app{width:min(1240px,100%);margin:auto;padding:20px}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:12px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}
     .brand{display:flex;align-items:center;gap:12px}
     .brand-mark{display:grid;place-items:center;width:52px;height:52px;border-radius:17px;background:var(--teal);color:#fff;font-size:27px;box-shadow:0 9px 20px rgba(8,127,140,.28);transform:rotate(-5deg)}
     .eyebrow{margin:0 0 3px;color:var(--teal-dark);font-size:11px;font-weight:950;letter-spacing:1.4px;text-transform:uppercase}
     h1,h2,h3,p{margin-top:0}
     .brand h1{margin:0;font-size:clamp(21px,3vw,31px);letter-spacing:-.8px}
     .brand-sub{margin:2px 0 0;color:var(--muted);font-size:13px}
-    .topbar-actions{display:flex;align-items:center;gap:8px}
-    .back-btn{border:1px solid rgba(8,127,140,.35);border-radius:13px;padding:11px 15px;background:#e7f5f4;color:var(--teal-dark);font-weight:950;cursor:pointer;box-shadow:0 7px 16px rgba(8,127,140,.08);white-space:nowrap}
-    .back-btn:hover{background:#d6f1ed;transform:translateY(-2px)}
     .manual-btn{border:1px solid rgba(8,127,140,.35);border-radius:13px;padding:11px 15px;background:#fff;color:var(--teal-dark);font-weight:950;cursor:pointer;box-shadow:0 7px 16px rgba(8,127,140,.1);white-space:nowrap}
     .manual-btn:hover{background:#e7faf7;transform:translateY(-2px)}
+    .mission{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;padding:18px 20px;border:1px solid rgba(255,255,255,.78);border-radius:22px;background:rgba(255,255,255,.72);box-shadow:var(--shadow)}
+    .mission h2{margin:0 0 5px;font-size:clamp(20px,3vw,28px)}
+    .mission p:not(.eyebrow){margin:0;color:var(--muted);line-height:1.5}
+    .mission-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .pill{padding:9px 12px;border-radius:999px;background:#e8fbf7;color:var(--teal-dark);font-size:12px;font-weight:950;white-space:nowrap}
     .pill.timer{background:#fff0cc;color:#855915}
     .layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(330px,.8fr);gap:16px}
@@ -63,15 +64,6 @@
      .inspection-dialog .status-line{display:flex;align-items:center;gap:8px;margin:15px 0;color:var(--teal-dark);font-size:13px;font-weight:950}
      .report-close-btn{width:100%;margin-top:14px;padding:12px;border:1px solid rgba(8,127,140,.3);border-radius:12px;background:#fff;color:var(--teal-dark);font-weight:950;cursor:pointer}
      .report-close-btn:hover{background:#e8fbf7}
-      .failure-overlay{position:fixed;inset:0;z-index:18;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(10,42,58,.72);backdrop-filter:blur(8px)}
-      .failure-overlay[hidden]{display:none}
-      .failure-overlay.open{display:flex}
-      .failure-card{width:min(440px,100%);padding:28px;border:2px solid rgba(255,128,102,.55);border-radius:25px;background:var(--paper);box-shadow:0 25px 80px rgba(8,55,70,.4);text-align:center;animation:pop .25s ease-out}
-      .failure-icon{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 15px;border-radius:21px;background:#ffe8e1;font-size:34px}
-      .failure-card h2{margin:0 0 8px;font-size:29px;color:#a64232}
-      .failure-card p{margin:0;color:var(--muted);line-height:1.5}
-      .failure-close{width:100%;margin-top:20px;padding:13px;border:0;border-radius:13px;background:var(--teal);color:#fff;font-weight:950;cursor:pointer}
-      .failure-close:hover{background:var(--teal-dark);transform:translateY(-2px)}
     .status-dot{width:9px;height:9px;border-radius:50%;background:var(--yellow)}
     .status-dot.bad{background:var(--coral)}.status-dot.good{background:var(--green)}
      .repair-action{display:grid;gap:10px;padding:14px;border:1px solid rgba(255,128,102,.35);border-radius:17px;background:#fff8e7}
@@ -103,6 +95,15 @@
     .log{margin:0;padding:11px 13px;border-left:3px solid var(--yellow);border-radius:10px;background:#fff8e7;color:#735522;font-size:12px;line-height:1.5}
     .manual-overlay{position:fixed;inset:0;z-index:10;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(10,42,58,.68);backdrop-filter:blur(8px)}
     .manual-overlay.open{display:flex}
+      .failure-overlay{position:fixed;inset:0;z-index:19;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(10,42,58,.72);backdrop-filter:blur(8px)}
+      .failure-overlay[hidden]{display:none}
+      .failure-overlay.open{display:flex}
+      .failure-card{width:min(440px,100%);padding:28px;border:2px solid rgba(255,255,255,.8);border-radius:25px;background:var(--paper);box-shadow:0 25px 80px rgba(8,55,70,.4);text-align:center;animation:pop .3s ease-out}
+      .failure-icon{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 15px;border-radius:21px;background:#ffe8e1;color:#b42318;font-size:34px}
+      .failure-card h2{margin:0 0 9px;font-size:30px}
+      .failure-card p{margin:0;color:var(--muted);line-height:1.55}
+      .failure-close-btn{width:100%;margin-top:22px;padding:14px;border:0;border-radius:13px;background:var(--coral);color:#fff;font-weight:950;cursor:pointer}
+      .failure-close-btn:hover{filter:brightness(.92);transform:translateY(-2px)}
      .timeup-overlay{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(10,42,58,.72);backdrop-filter:blur(8px)}
      .timeup-overlay[hidden]{display:none}
      .timeup-overlay.open{display:flex}
@@ -114,33 +115,8 @@
      .score-result strong{display:block;font-size:clamp(38px,10vw,52px);line-height:1.1;letter-spacing:-1px}
      .score-result span{display:block;margin-top:5px;font-size:12px;font-weight:950;letter-spacing:1px;text-transform:uppercase}
      .timeup-planes{margin-bottom:20px!important;font-weight:850}
-     .result-actions{display:flex;gap:9px}
-     .restart-btn,.leaderboard-btn{flex:1;padding:14px;border:0;border-radius:13px;font-weight:950;cursor:pointer}
-     .restart-btn{background:var(--teal);color:#fff;box-shadow:0 8px 16px rgba(8,127,140,.2)}
+     .restart-btn{width:100%;padding:14px;border:0;border-radius:13px;background:var(--teal);color:#fff;font-weight:950;cursor:pointer;box-shadow:0 8px 16px rgba(8,127,140,.2)}
      .restart-btn:hover{background:var(--teal-dark);transform:translateY(-2px)}
-     .leaderboard-btn{background:#fff;border:1px solid rgba(8,127,140,.3);color:var(--teal-dark)}
-     .leaderboard-btn:hover{background:#e8fbf7;transform:translateY(-2px)}
-     .leaderboard-entry{margin:18px 0;padding:14px;border:1px solid rgba(255,209,102,.65);border-radius:15px;background:#fff8e7;text-align:left}
-     .leaderboard-entry[hidden]{display:none}
-     .leaderboard-entry p{margin:0 0 10px;color:#735522;font-size:13px;line-height:1.45}
-     .leaderboard-entry-row{display:flex;gap:8px}
-     .leaderboard-name{min-width:0;flex:1;padding:11px 12px;border:1px solid rgba(117,85,34,.25);border-radius:10px;background:#fff;color:var(--ink);font:inherit}
-     .save-score-btn{padding:11px 13px;border:0;border-radius:10px;background:var(--green);color:#fff;font-weight:950;cursor:pointer}
-     .save-score-btn:disabled{opacity:.45;cursor:not-allowed}
-     .leaderboard-overlay{position:fixed;inset:0;z-index:25;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(10,42,58,.72);backdrop-filter:blur(8px)}
-     .leaderboard-overlay[hidden]{display:none}
-     .leaderboard-overlay.open{display:flex}
-     .leaderboard-card{width:min(480px,100%);max-height:90vh;overflow:auto;padding:24px;border:2px solid rgba(255,255,255,.8);border-radius:24px;background:var(--paper);box-shadow:0 25px 80px rgba(8,55,70,.4)}
-     .leaderboard-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
-     .leaderboard-head h2{margin:0 0 5px;font-size:25px}
-     .leaderboard-head p{margin:0;color:var(--muted);font-size:13px}
-     .leaderboard-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
-     .leaderboard-list li{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:9px;padding:11px 12px;border-radius:12px;background:#f4fbfa;color:var(--ink)}
-     .leaderboard-list .leaderboard-rank{color:var(--teal-dark);font-weight:950}
-     .leaderboard-list .leaderboard-score{color:var(--teal-dark);font-weight:950}
-     .leaderboard-empty{padding:20px!important;display:block!important;text-align:center;color:var(--muted)!important}
-     .leaderboard-close{width:100%;margin-top:16px;padding:12px;border:1px solid rgba(8,127,140,.3);border-radius:12px;background:#fff;color:var(--teal-dark);font-weight:950;cursor:pointer}
-     .leaderboard-close:hover{background:#e8fbf7}
     .manual{width:min(680px,100%);max-height:90vh;overflow:auto;padding:25px;border:2px solid rgba(255,255,255,.75);border-radius:24px;background:var(--paper);box-shadow:0 25px 80px rgba(8,55,70,.35)}
     .manual-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}
     .manual h2{margin:0 0 6px;font-size:27px}
@@ -154,7 +130,7 @@
     .manual-note{padding:12px 14px;border-radius:12px;background:#fff1c9;color:#765620;font-size:12px;line-height:1.5}
     @keyframes pop{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:none}}
      @media(max-width:900px){.layout{grid-template-columns:1fr}#plane-canvas{min-height:420px}.workbench{display:grid;grid-template-columns:1fr 1fr;align-content:start}.bench-heading,.inspection,.tool-row,.log{grid-column:1/-1}}
-     @media(max-width:620px){.app{padding:12px}.topbar{align-items:flex-start;flex-direction:column}.topbar-actions{width:100%;align-items:stretch}.topbar-actions .pill,.back-btn,.manual-btn{flex:1;min-width:0}.topbar-actions .pill{text-align:center}.back-btn,.manual-btn{padding:11px 8px;font-size:12px}.layout{display:block}.hangar{margin-bottom:12px}#plane-canvas{min-height:340px}.workbench{display:flex;padding:15px}.part-list{grid-template-columns:1fr 1fr}.tool-row{flex-direction:column}}
+    @media(max-width:620px){.app{padding:12px}.topbar,.mission{align-items:flex-start;flex-direction:column}.manual-btn{align-self:stretch}.mission-meta{justify-content:flex-start}.layout{display:block}.hangar{margin-bottom:12px}#plane-canvas{min-height:340px}.workbench{display:flex;padding:15px}.part-list{grid-template-columns:1fr 1fr}.tool-row{flex-direction:column}}
   </style>
 </head>
 <body>
@@ -168,13 +144,20 @@
           <p class="brand-sub">Make the plane safe before the next adventure.</p>
         </div>
       </div>
-      <div class="topbar-actions">
-        <button class="back-btn" id="careerverse-back" type="button">← CareerVerse</button>
-        <span class="pill" id="planes-pill">✈️ 0 planes fixed</span>
-        <span class="pill timer" id="timer-pill">⏱ 02:00</span>
-        <button class="manual-btn" id="manual-open" type="button">📖 Open Manual</button>
-      </div>
+      <button class="manual-btn" id="manual-open" type="button">📖 Open Manual</button>
     </header>
+
+    <section class="mission" aria-live="polite">
+      <div>
+        <p class="eyebrow" id="mission-kicker">Pre-flight challenge</p>
+        <h2 id="mission-title">First Flight Check</h2>
+        <p id="mission-brief">The school science club is ready to fly. Inspect the plane and repair anything unsafe.</p>
+      </div>
+      <div class="mission-meta">
+         <span class="pill" id="planes-pill">✈️ 0 planes fixed</span>
+         <span class="pill timer" id="timer-pill">⏱ 02:00</span>
+      </div>
+    </section>
 
     <section class="layout">
       <div class="hangar">
@@ -244,15 +227,15 @@
     </section>
   </div>
 
-  <div class="failure-overlay" id="failure-overlay" role="dialog" aria-modal="true" aria-labelledby="failure-title" aria-describedby="failure-copy" hidden>
+  <div class="failure-overlay" id="failure-overlay" role="alertdialog" aria-modal="true" aria-labelledby="failure-title" aria-describedby="failure-copy" hidden>
     <section class="failure-card">
-      <div class="failure-icon" aria-hidden="true">🚫</div>
+      <div class="failure-icon" aria-hidden="true">✖</div>
       <p class="eyebrow">Mission failed</p>
       <h2 id="failure-title">Takeoff failed — You lose</h2>
       <p id="failure-copy" aria-live="assertive">The plane is still unsafe.</p>
       <div class="score-result"><strong id="failure-score">0</strong><span>Score earned</span></div>
       <p class="timeup-planes" id="failure-planes"></p>
-      <button class="failure-close" id="failure-close" type="button">PLAY AGAIN ↻</button>
+      <button class="failure-close-btn" id="failure-close" type="button">PLAY AGAIN ↻</button>
     </section>
   </div>
 
@@ -264,32 +247,7 @@
       <p id="timeup-copy">Your final score is ready.</p>
       <div class="score-result"><strong id="timeup-score">0</strong><span>Final score</span></div>
       <p class="timeup-planes" id="timeup-planes"></p>
-      <section class="leaderboard-entry" id="leaderboard-entry" hidden>
-        <p><strong>🏆 Top ten score!</strong> Add your name to the leaderboard.</p>
-        <div class="leaderboard-entry-row">
-          <input class="leaderboard-name" id="leaderboard-name" type="text" maxlength="18" placeholder="Your name" autocomplete="nickname">
-          <button class="save-score-btn" id="save-score-btn" type="button" disabled>SAVE</button>
-        </div>
-      </section>
-      <div class="result-actions">
-        <button class="restart-btn" id="restart-btn" type="button">PLAY AGAIN ↻</button>
-        <button class="leaderboard-btn" id="leaderboard-btn" type="button">🏆 LEADERBOARD</button>
-      </div>
-    </section>
-  </div>
-
-  <div class="leaderboard-overlay" id="leaderboard-overlay" role="dialog" aria-modal="true" aria-labelledby="leaderboard-title" hidden>
-    <section class="leaderboard-card">
-      <div class="leaderboard-head">
-        <div>
-          <p class="eyebrow">Airfield records</p>
-          <h2 id="leaderboard-title">🏆 Top ten</h2>
-          <p>Scores saved on this device.</p>
-        </div>
-        <button class="close-manual" id="leaderboard-close" type="button" aria-label="Close leaderboard">×</button>
-      </div>
-      <ol class="leaderboard-list" id="leaderboard-list"></ol>
-      <button class="leaderboard-close" id="leaderboard-done" type="button">BACK TO GAME</button>
+      <button class="restart-btn" id="restart-btn" type="button">PLAY AGAIN ↻</button>
     </section>
   </div>
 
@@ -331,12 +289,14 @@
      let planeFlying = false;
      let planeFlyStarted = 0;
       let advanceTimer;
-      let leaderboardSaved = false;
+       const TAKEOFF_BONUS_WINDOW_SECONDS = 10;
+       const TAKEOFF_BONUS_POINTS_PER_SECOND = 10;
+       let takeoffBonusStartedAt = 0;
+       let takeoffBonusTimeout;
 
     const selectedPart = () => parts.find(part => part.id === selectedId);
     const currentMission = () => missions[round % missions.length];
     const byId = id => document.getElementById(id);
-     const leaderboardStorageKey = 'careerverse-airfield-leaderboard';
 
      function startMission(newSession = false){
        if(newSession){
@@ -347,13 +307,14 @@
          sessionOver = false;
          sessionStarted = true;
          planeFlying = false;
-          updateSessionStats();
+         updateSessionStats();
        }else if(!sessionStarted){
          seconds = 120;
          sessionStarted = true;
        }
        const mission = currentMission();
        stopFuelHold();
+        clearHiddenTakeoffBonus();
        clearTimeout(advanceTimer);
        faults = randomizeFaults();
       checked = new Set();
@@ -362,15 +323,13 @@
        planeFlying = false;
       selectedId = 'fuel';
        repairProgress = 0;
+      byId('mission-title').textContent = mission.title;
+      byId('mission-brief').textContent = mission.brief;
+      byId('mission-kicker').textContent = `Pre-flight challenge · mission ${round + 1}`;
        closeInspectionPopup();
         closeFailurePopup();
        byId('timeup-overlay').classList.remove('open');
        byId('timeup-overlay').hidden = true;
-        byId('leaderboard-entry').hidden = true;
-        byId('leaderboard-name').value = '';
-        byId('save-score-btn').disabled = true;
-        leaderboardSaved = false;
-        closeLeaderboard();
       byId('log').textContent = mission.radio;
       byId('inspect-btn').disabled = false;
        byId('done-btn').disabled = false;
@@ -403,90 +362,9 @@
        return `⏱ ${mins}:${secs}`;
      }
 
-      function updateSessionStats(){
-        byId('planes-pill').textContent = `✈️ ${planesFixed} plane${planesFixed === 1 ? '' : 's'} fixed`;
-      }
-
-      function readLeaderboard(){
-        try{
-          const saved = JSON.parse(localStorage.getItem(leaderboardStorageKey) || '[]');
-          if(!Array.isArray(saved)) return [];
-          return saved
-            .filter(entry => entry && typeof entry.name === 'string' && Number.isFinite(Number(entry.score)))
-            .map(entry => ({name:entry.name,score:Number(entry.score),planes:Number(entry.planes) || 0}))
-            .sort((a,b) => b.score - a.score)
-            .slice(0,10);
-        }catch(error){
-          return [];
-        }
-      }
-
-      function qualifiesForLeaderboard(value){
-        const entries = readLeaderboard();
-        return entries.length < 10 || value > entries[entries.length - 1].score;
-      }
-
-      function renderLeaderboard(){
-        const list = byId('leaderboard-list');
-        list.innerHTML = '';
-        const entries = readLeaderboard();
-        if(!entries.length){
-          const empty = document.createElement('li');
-          empty.className = 'leaderboard-empty';
-          empty.textContent = 'No scores yet. Finish a shift to claim a place.';
-          list.appendChild(empty);
-          return;
-        }
-        entries.forEach((entry,index) => {
-          const row = document.createElement('li');
-          const rank = document.createElement('span');
-          rank.className = 'leaderboard-rank';
-          rank.textContent = `#${index + 1}`;
-          const name = document.createElement('span');
-          name.textContent = entry.name;
-          const scoreText = document.createElement('span');
-          scoreText.className = 'leaderboard-score';
-          scoreText.textContent = `${entry.score.toLocaleString()} pts`;
-          row.append(rank,name,scoreText);
-          list.appendChild(row);
-        });
-      }
-
-      function openLeaderboard(){
-        renderLeaderboard();
-        const overlay = byId('leaderboard-overlay');
-        overlay.hidden = false;
-        overlay.classList.add('open');
-        byId('leaderboard-close').focus();
-      }
-
-      function closeLeaderboard(){
-        const overlay = byId('leaderboard-overlay');
-        if(!overlay) return;
-        overlay.classList.remove('open');
-        overlay.hidden = true;
-      }
-
-      function saveLeaderboardScore(){
-        if(leaderboardSaved) return;
-        const input = byId('leaderboard-name');
-        const name = input.value.trim();
-        if(!name){
-          input.focus();
-          return;
-        }
-        const entries = readLeaderboard();
-        entries.push({name:name.slice(0,18),score,planes:planesFixed});
-        entries.sort((a,b) => b.score - a.score);
-        try{
-          localStorage.setItem(leaderboardStorageKey,JSON.stringify(entries.slice(0,10)));
-          leaderboardSaved = true;
-          byId('leaderboard-entry').hidden = true;
-          byId('timeup-copy').textContent = 'Your score has been saved to the leaderboard.';
-        }catch(error){
-          byId('timeup-copy').textContent = 'Your score could not be saved on this device.';
-        }
-      }
+     function updateSessionStats(){
+       byId('planes-pill').textContent = `✈️ ${planesFixed} plane${planesFixed === 1 ? '' : 's'} fixed`;
+     }
 
     function renderParts(){
       const list = byId('part-list');
@@ -578,6 +456,29 @@
        clearInterval(fuelHoldTimer);
        fuelHoldTimer = null;
      }
+
+      function clearHiddenTakeoffBonus(){
+        clearTimeout(takeoffBonusTimeout);
+        takeoffBonusTimeout = null;
+        takeoffBonusStartedAt = 0;
+      }
+
+      function startHiddenTakeoffBonus(){
+        clearHiddenTakeoffBonus();
+        takeoffBonusStartedAt = Date.now();
+        takeoffBonusTimeout = setTimeout(() => {
+          takeoffBonusTimeout = null;
+          takeoffBonusStartedAt = 0;
+        }, TAKEOFF_BONUS_WINDOW_SECONDS * 1000);
+      }
+
+      function collectHiddenTakeoffBonus(){
+        if(!takeoffBonusStartedAt) return 0;
+        const elapsedSeconds = Math.floor((Date.now() - takeoffBonusStartedAt) / 1000);
+        const remainingSeconds = Math.max(0, TAKEOFF_BONUS_WINDOW_SECONDS - elapsedSeconds);
+        clearHiddenTakeoffBonus();
+        return remainingSeconds * TAKEOFF_BONUS_POINTS_PER_SECOND;
+      }
 
      function startFuelHold(){
        if(fuelHolding || finished) return;
@@ -674,8 +575,8 @@
       }
 
       function showFailurePopup(message){
-        const overlay = byId('failure-overlay');
         byId('failure-copy').textContent = message;
+        const overlay = byId('failure-overlay');
         overlay.hidden = false;
         overlay.classList.add('open');
         byId('failure-close').focus();
@@ -696,39 +597,38 @@
         clearInterval(timerId);
         clearTimeout(advanceTimer);
         stopFuelHold();
+        clearHiddenTakeoffBonus();
         byId('inspect-btn').disabled = true;
         byId('done-btn').disabled = true;
         closeInspectionPopup();
         byId('log').textContent = message;
-        byId('failure-copy').textContent = message;
         byId('failure-score').textContent = score.toLocaleString();
         byId('failure-planes').textContent = `You safely prepared ${planesFixed} plane${planesFixed === 1 ? '' : 's'}.`;
-        byId('failure-overlay').hidden = false;
-        byId('failure-overlay').classList.add('open');
-        byId('failure-close').focus();
+        showFailurePopup(message);
       }
 
      function submitPlane(){
        if(finished || sessionOver) return;
-        const outstandingParts = parts.filter(part => faults.has(part.id) && !fixed.has(part.id));
-         if(outstandingParts.length){
-           const names = outstandingParts.map(part => part.name).join(', ');
-           loseMission(`Takeoff failed. ${names} ${outstandingParts.length === 1 ? 'is' : 'are'} still broken. You lose!`);
+        const outstandingPart = parts.find(part => faults.has(part.id) && !fixed.has(part.id));
+        if(outstandingPart){
+          loseMission(`Takeoff failed. The ${outstandingPart.name} is still broken. You lose!`);
           return;
-        }
+       }
 
         finished = true;
         byId('inspect-btn').disabled = true;
         byId('done-btn').disabled = true;
         closeInspectionPopup();
         planesFixed += 1;
-        score += 150 + seconds * 2;
+        score += 150;
+        startHiddenTakeoffBonus();
         planeFlying = true;
         planeFlyStarted = Date.now();
         updateSessionStats();
         byId('log').textContent = 'Control tower: cleared for takeoff!';
         advanceTimer = setTimeout(() => {
           if(!sessionOver){
+            score += collectHiddenTakeoffBonus();
             round += 1;
             startMission();
           }
@@ -746,25 +646,16 @@
        byId('inspect-btn').disabled = true;
        byId('done-btn').disabled = true;
         closeInspectionPopup();
-         closeFailurePopup();
        byId('log').textContent = 'Control tower: shift complete.';
         byId('timeup-copy').textContent = 'Your two-minute airfield shift is complete. Here are your results.';
         byId('timeup-score').textContent = score.toLocaleString();
         byId('timeup-planes').textContent = `You safely prepared ${planesFixed} plane${planesFixed === 1 ? '' : 's'}.`;
-        leaderboardSaved = false;
-        byId('leaderboard-name').value = '';
-        byId('save-score-btn').disabled = true;
-        byId('leaderboard-entry').hidden = !qualifiesForLeaderboard(score);
         byId('timeup-overlay').hidden = false;
         byId('timeup-overlay').classList.add('open');
     }
 
     function openManual(){byId('manual-overlay').classList.add('open');}
     function closeManual(){byId('manual-overlay').classList.remove('open');}
-     function returnToCareerVerse(){
-       if(document.referrer) window.history.back();
-       else window.location.href = 'CereerVerse_V1_1789960976628.html';
-     }
 
     function resizeCanvas(){
       const rect = canvas.getBoundingClientRect();
@@ -882,25 +773,15 @@
     });
     byId('inspect-btn').addEventListener('click',inspect);
      byId('done-btn').addEventListener('click',submitPlane);
-       byId('restart-btn').addEventListener('click',()=>startMission(true));
+      byId('restart-btn').addEventListener('click',()=>startMission(true));
        byId('failure-close').addEventListener('click',()=>startMission(true));
-       byId('leaderboard-btn').addEventListener('click',openLeaderboard);
-       byId('leaderboard-close').addEventListener('click',closeLeaderboard);
-       byId('leaderboard-done').addEventListener('click',closeLeaderboard);
-       byId('leaderboard-overlay').addEventListener('click',event=>{if(event.target === byId('leaderboard-overlay')) closeLeaderboard();});
-       byId('leaderboard-name').addEventListener('input',event=>{byId('save-score-btn').disabled = !event.target.value.trim();});
-       byId('leaderboard-name').addEventListener('keydown',event=>{if(event.key === 'Enter') saveLeaderboardScore();});
-       byId('save-score-btn').addEventListener('click',saveLeaderboardScore);
       byId('inspection-close').addEventListener('click',closeInspectionPopup);
       byId('inspection-done').addEventListener('click',closeInspectionPopup);
       byId('inspection-overlay').addEventListener('click',event=>{if(event.target === byId('inspection-overlay')) closeInspectionPopup();});
-       byId('failure-close').addEventListener('click',closeFailurePopup);
-       byId('failure-overlay').addEventListener('click',event=>{if(event.target === byId('failure-overlay')) closeFailurePopup();});
-    byId('careerverse-back').addEventListener('click',returnToCareerVerse);
     byId('manual-open').addEventListener('click',openManual);
     byId('manual-close').addEventListener('click',closeManual);
     byId('manual-overlay').addEventListener('click',event=>{if(event.target === byId('manual-overlay')) closeManual();});
-     document.addEventListener('keydown',event=>{if(event.key === 'Escape'){closeManual();closeInspectionPopup();closeFailurePopup();closeLeaderboard();}});
+     document.addEventListener('keydown',event=>{if(event.key === 'Escape'){closeManual();closeInspectionPopup();closeFailurePopup();}});
     window.addEventListener('resize',resizeCanvas);
      startMission(true);
     setInterval(draw,120);
