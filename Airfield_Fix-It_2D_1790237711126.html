@@ -15,19 +15,16 @@
     body{margin:0;min-height:100vh;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 8% 4%,#fff 0 9%,transparent 27%),linear-gradient(135deg,#c8f3ff,#fff1d2 82%)}
     button{font:inherit}
     .app{width:min(1240px,100%);margin:auto;padding:20px}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:12px}
     .brand{display:flex;align-items:center;gap:12px}
     .brand-mark{display:grid;place-items:center;width:52px;height:52px;border-radius:17px;background:var(--teal);color:#fff;font-size:27px;box-shadow:0 9px 20px rgba(8,127,140,.28);transform:rotate(-5deg)}
     .eyebrow{margin:0 0 3px;color:var(--teal-dark);font-size:11px;font-weight:950;letter-spacing:1.4px;text-transform:uppercase}
     h1,h2,h3,p{margin-top:0}
     .brand h1{margin:0;font-size:clamp(21px,3vw,31px);letter-spacing:-.8px}
     .brand-sub{margin:2px 0 0;color:var(--muted);font-size:13px}
+    .topbar-actions{display:flex;align-items:center;gap:8px}
     .manual-btn{border:1px solid rgba(8,127,140,.35);border-radius:13px;padding:11px 15px;background:#fff;color:var(--teal-dark);font-weight:950;cursor:pointer;box-shadow:0 7px 16px rgba(8,127,140,.1);white-space:nowrap}
     .manual-btn:hover{background:#e7faf7;transform:translateY(-2px)}
-    .mission{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;padding:18px 20px;border:1px solid rgba(255,255,255,.78);border-radius:22px;background:rgba(255,255,255,.72);box-shadow:var(--shadow)}
-    .mission h2{margin:0 0 5px;font-size:clamp(20px,3vw,28px)}
-    .mission p:not(.eyebrow){margin:0;color:var(--muted);line-height:1.5}
-    .mission-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .pill{padding:9px 12px;border-radius:999px;background:#e8fbf7;color:var(--teal-dark);font-size:12px;font-weight:950;white-space:nowrap}
     .pill.timer{background:#fff0cc;color:#855915}
     .layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(330px,.8fr);gap:16px}
@@ -121,7 +118,7 @@
     .manual-note{padding:12px 14px;border-radius:12px;background:#fff1c9;color:#765620;font-size:12px;line-height:1.5}
     @keyframes pop{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:none}}
      @media(max-width:900px){.layout{grid-template-columns:1fr}#plane-canvas{min-height:420px}.workbench{display:grid;grid-template-columns:1fr 1fr;align-content:start}.bench-heading,.inspection,.tool-row,.log{grid-column:1/-1}}
-    @media(max-width:620px){.app{padding:12px}.topbar,.mission{align-items:flex-start;flex-direction:column}.manual-btn{align-self:stretch}.mission-meta{justify-content:flex-start}.layout{display:block}.hangar{margin-bottom:12px}#plane-canvas{min-height:340px}.workbench{display:flex;padding:15px}.part-list{grid-template-columns:1fr 1fr}.tool-row{flex-direction:column}}
+     @media(max-width:620px){.app{padding:12px}.topbar{align-items:flex-start;flex-direction:column}.topbar-actions{width:100%;align-items:stretch}.topbar-actions .pill{flex:1;text-align:center}.manual-btn{flex:1}.layout{display:block}.hangar{margin-bottom:12px}#plane-canvas{min-height:340px}.workbench{display:flex;padding:15px}.part-list{grid-template-columns:1fr 1fr}.tool-row{flex-direction:column}}
   </style>
 </head>
 <body>
@@ -135,20 +132,12 @@
           <p class="brand-sub">Make the plane safe before the next adventure.</p>
         </div>
       </div>
-      <button class="manual-btn" id="manual-open" type="button">📖 Open Manual</button>
+      <div class="topbar-actions">
+        <span class="pill" id="planes-pill">✈️ 0 planes fixed</span>
+        <span class="pill timer" id="timer-pill">⏱ 02:00</span>
+        <button class="manual-btn" id="manual-open" type="button">📖 Open Manual</button>
+      </div>
     </header>
-
-    <section class="mission" aria-live="polite">
-      <div>
-        <p class="eyebrow" id="mission-kicker">Pre-flight challenge</p>
-        <h2 id="mission-title">First Flight Check</h2>
-        <p id="mission-brief">The school science club is ready to fly. Inspect the plane and repair anything unsafe.</p>
-      </div>
-      <div class="mission-meta">
-         <span class="pill" id="planes-pill">✈️ 0 planes fixed</span>
-         <span class="pill timer" id="timer-pill">⏱ 02:00</span>
-      </div>
-    </section>
 
     <section class="layout">
       <div class="hangar">
@@ -282,7 +271,7 @@
          sessionOver = false;
          sessionStarted = true;
          planeFlying = false;
-         updateSessionStats();
+          updateSessionStats();
        }else if(!sessionStarted){
          seconds = 120;
          sessionStarted = true;
@@ -297,9 +286,6 @@
        planeFlying = false;
       selectedId = 'fuel';
        repairProgress = 0;
-      byId('mission-title').textContent = mission.title;
-      byId('mission-brief').textContent = mission.brief;
-      byId('mission-kicker').textContent = `Pre-flight challenge · mission ${round + 1}`;
        closeInspectionPopup();
        byId('timeup-overlay').classList.remove('open');
        byId('timeup-overlay').hidden = true;
@@ -335,9 +321,9 @@
        return `⏱ ${mins}:${secs}`;
      }
 
-     function updateSessionStats(){
-       byId('planes-pill').textContent = `✈️ ${planesFixed} plane${planesFixed === 1 ? '' : 's'} fixed`;
-     }
+      function updateSessionStats(){
+        byId('planes-pill').textContent = `✈️ ${planesFixed} plane${planesFixed === 1 ? '' : 's'} fixed`;
+      }
 
     function renderParts(){
       const list = byId('part-list');
