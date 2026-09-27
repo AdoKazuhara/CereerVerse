@@ -982,10 +982,6 @@ function launchMinigame(game){
 
 function openMinigames(type){
  const games=minigameData[type] || [];
- if(games.length === 1){
-  launchMinigame(games[0]);
-  return;
- }
  const island=islands.find(node=>node.dataset.type===type);
  const islandName=island ? island.querySelector('.island-title').textContent : type;
  const isMalay=currentLang==='ms';
@@ -1248,3 +1244,4 @@ languageScreen.style.display = 'flex';
 
 </body>
 </html>
+
