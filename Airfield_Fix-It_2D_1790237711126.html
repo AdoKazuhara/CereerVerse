@@ -23,6 +23,8 @@
     .brand h1{margin:0;font-size:clamp(21px,3vw,31px);letter-spacing:-.8px}
     .brand-sub{margin:2px 0 0;color:var(--muted);font-size:13px}
     .topbar-actions{display:flex;align-items:center;gap:8px}
+    .back-btn{border:1px solid rgba(8,127,140,.35);border-radius:13px;padding:11px 15px;background:#e7f5f4;color:var(--teal-dark);font-weight:950;cursor:pointer;box-shadow:0 7px 16px rgba(8,127,140,.08);white-space:nowrap}
+    .back-btn:hover{background:#d6f1ed;transform:translateY(-2px)}
     .manual-btn{border:1px solid rgba(8,127,140,.35);border-radius:13px;padding:11px 15px;background:#fff;color:var(--teal-dark);font-weight:950;cursor:pointer;box-shadow:0 7px 16px rgba(8,127,140,.1);white-space:nowrap}
     .manual-btn:hover{background:#e7faf7;transform:translateY(-2px)}
     .pill{padding:9px 12px;border-radius:999px;background:#e8fbf7;color:var(--teal-dark);font-size:12px;font-weight:950;white-space:nowrap}
@@ -118,7 +120,7 @@
     .manual-note{padding:12px 14px;border-radius:12px;background:#fff1c9;color:#765620;font-size:12px;line-height:1.5}
     @keyframes pop{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:none}}
      @media(max-width:900px){.layout{grid-template-columns:1fr}#plane-canvas{min-height:420px}.workbench{display:grid;grid-template-columns:1fr 1fr;align-content:start}.bench-heading,.inspection,.tool-row,.log{grid-column:1/-1}}
-     @media(max-width:620px){.app{padding:12px}.topbar{align-items:flex-start;flex-direction:column}.topbar-actions{width:100%;align-items:stretch}.topbar-actions .pill{flex:1;text-align:center}.manual-btn{flex:1}.layout{display:block}.hangar{margin-bottom:12px}#plane-canvas{min-height:340px}.workbench{display:flex;padding:15px}.part-list{grid-template-columns:1fr 1fr}.tool-row{flex-direction:column}}
+     @media(max-width:620px){.app{padding:12px}.topbar{align-items:flex-start;flex-direction:column}.topbar-actions{width:100%;align-items:stretch}.topbar-actions .pill,.back-btn,.manual-btn{flex:1;min-width:0}.topbar-actions .pill{text-align:center}.back-btn,.manual-btn{padding:11px 8px;font-size:12px}.layout{display:block}.hangar{margin-bottom:12px}#plane-canvas{min-height:340px}.workbench{display:flex;padding:15px}.part-list{grid-template-columns:1fr 1fr}.tool-row{flex-direction:column}}
   </style>
 </head>
 <body>
@@ -133,6 +135,7 @@
         </div>
       </div>
       <div class="topbar-actions">
+        <button class="back-btn" id="careerverse-back" type="button">← CareerVerse</button>
         <span class="pill" id="planes-pill">✈️ 0 planes fixed</span>
         <span class="pill timer" id="timer-pill">⏱ 02:00</span>
         <button class="manual-btn" id="manual-open" type="button">📖 Open Manual</button>
@@ -563,6 +566,10 @@
 
     function openManual(){byId('manual-overlay').classList.add('open');}
     function closeManual(){byId('manual-overlay').classList.remove('open');}
+     function returnToCareerVerse(){
+       if(document.referrer) window.history.back();
+       else window.location.href = 'CereerVerse_V1_1789960976628.html';
+     }
 
     function resizeCanvas(){
       const rect = canvas.getBoundingClientRect();
@@ -684,6 +691,7 @@
       byId('inspection-close').addEventListener('click',closeInspectionPopup);
       byId('inspection-done').addEventListener('click',closeInspectionPopup);
       byId('inspection-overlay').addEventListener('click',event=>{if(event.target === byId('inspection-overlay')) closeInspectionPopup();});
+    byId('careerverse-back').addEventListener('click',returnToCareerVerse);
     byId('manual-open').addEventListener('click',openManual);
     byId('manual-close').addEventListener('click',closeManual);
     byId('manual-overlay').addEventListener('click',event=>{if(event.target === byId('manual-overlay')) closeManual();});
