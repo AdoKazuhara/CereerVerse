@@ -989,11 +989,8 @@ function showMinigameList(){
 }
 
 function launchMinigame(game){
- minigameList.style.display='none';
- minigameFrameWrap.classList.add('open');
- minigameCurrentTitle.textContent=game.title;
- minigameFrame.title=game.title+' mini game';
- minigameFrame.src=encodeURI(game.file);
+ // Give each mini-game its own full page instead of nesting it in the hub modal.
+ window.location.assign(encodeURI(game.file));
 }
 
 function openMinigames(type){
