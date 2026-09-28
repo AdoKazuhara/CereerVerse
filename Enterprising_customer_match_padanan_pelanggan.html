@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padanan Pelanggan | Customer Match</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        shopDark: '#080d1a',
+                        shopGlass: 'rgba(15, 23, 42, 0.88)',
+                        emeraldGlow: '#10b981',
+                        cyanGlow: '#06b6d4',
+                        amberGlow: '#f59e0b',
+                        purpleGlow: '#8b5cf6',
+                        roseGlow: '#f43f5e'
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shake': 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both',
+                        'pop-in': 'popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        'float-up': 'floatUp 0.8s ease-out forwards'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { filter: 'drop-shadow(0 0 12px rgba(16, 185, 129, 0.4))' },
+                            '50%': { filter: 'drop-shadow(0 0 24px rgba(6, 182, 212, 0.7))' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-2px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(4px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-6px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(6px, 0, 0)' },
+                        },
+                        popIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.92)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                        floatUp: {
+                            '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+                            '100%': { opacity: '0', transform: 'translateY(-30px) scale(1.2)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #080d1a;
+            color: #f8fafc;
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(16, 185, 129, 0.15);
+        }
+
+        .glass-btn {
+            background: rgba(30, 41, 59, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(8px);
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-btn:hover:not(:disabled) {
+            background: rgba(51, 65, 85, 0.9);
+            border-color: rgba(16, 185, 129, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
+        }
+
+        .glass-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .btn-correct {
+            background: rgba(16, 185, 129, 0.45) !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.7) !important;
+            color: #ffffff !important;
+        }
+
+        .btn-wrong {
+            background: rgba(244, 63, 94, 0.45) !important;
+            border-color: #f43f5e !important;
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.7) !important;
+            color: #ffffff !important;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(16, 185, 129, 0.4);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-3 sm:p-6 relative font-sans">
+
+    <!-- Ambient Floating Particles Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Top Controls Bar -->
+    <div class="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <button id="btn-lang-toggle" class="glass-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-emerald-400 hover:text-white flex items-center gap-1.5 shadow-md">
+            <span id="lang-indicator">🌐 BM</span>
+        </button>
+
+        <button id="btn-sound-toggle" aria-label="Toggle Sound" class="glass-btn p-2.5 rounded-xl text-emerald-400 hover:text-white flex items-center justify-center shadow-md">
+            <svg id="icon-sound-on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+            </svg>
+            <svg id="icon-sound-off" class="w-5 h-5 hidden text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+            </svg>
+        </button>
+    </div>
+
+    <main id="main-container" class="w-full max-w-xl glass-panel rounded-3xl p-5 sm:p-8 relative z-10 my-auto border border-emerald-500/30">
+
+        <!-- 1. START SCREEN -->
+        <section id="screen-start" class="flex flex-col items-center text-center space-y-5 py-2 animate-pop-in">
+            <div class="relative mt-2">
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 p-1 flex items-center justify-center animate-pulse-glow">
+                    <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-4xl sm:text-5xl">
+                        🛍️
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <span id="ui-subtitle" class="px-3 py-1 rounded-full text-[11px] font-bold tracking-widest uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                    Simulasi Padanan Produk & Pelanggan
+                </span>
+                <h1 id="ui-title" class="text-3xl sm:text-5xl font-black tracking-tight mt-3 bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                    PADANAN PELANGGAN
+                </h1>
+                <p id="ui-desc" class="text-slate-300 mt-2 text-xs sm:text-sm max-w-md leading-relaxed">
+                    Padankan setiap pelanggan dengan produk atau perkhidmatan yang paling tepat! Jawapan betul +2s, jawapan salah -2s!
+                </p>
+            </div>
+
+            <!-- Rules Overview Card -->
+            <div class="w-full bg-slate-950/70 rounded-2xl p-4 text-left text-xs sm:text-sm space-y-3 border border-slate-800">
+                <div class="flex items-center gap-3">
+                    <span class="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-lg">⏱️</span>
+                    <div>
+                        <strong id="rule-1-title" class="text-white block">Masa Asal 60 Saat</strong>
+                        <span id="rule-1-desc" class="text-slate-400 text-xs">Padankan seberapa banyak pelanggan sebelum pemasa tamat.</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="p-2 bg-cyan-500/20 text-cyan-400 rounded-lg text-lg">⚡</span>
+                    <div>
+                        <strong id="rule-2-title" class="text-white block">Bonus Masa +2s / Penalti -2s</strong>
+                        <span id="rule-2-desc" class="text-slate-400 text-xs">Padanan betul menambah +2s! Padanan salah menolak -2s.</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="p-2 bg-purple-500/20 text-purple-400 rounded-lg text-lg">💼</span>
+                    <div>
+                        <strong id="rule-3-title" class="text-white block">Pelbagai Profil Unik</strong>
+                        <span id="rule-3-desc" class="text-slate-400 text-xs">Merangkumi pelbagai profesion & keperluan unik tanpa ulangan!</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between w-full text-xs uppercase tracking-wider text-slate-400 font-semibold px-2">
+                <div><span id="lbl-high-score">Rekod Tertinggi:</span> <span id="start-high-score" class="text-emerald-400 font-bold text-sm">0</span></div>
+                <div><span id="lbl-total-q">Pangkalan:</span> <span id="db-count" class="text-cyan-400 font-bold text-sm">50+ Pelanggan Unik</span></div>
+            </div>
+
+            <button id="btn-start" class="w-full py-4 rounded-2xl font-black text-lg bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 active:scale-95 shadow-lg shadow-emerald-500/25 transition-all duration-200 text-white tracking-wide">
+                MULAKAN PADANAN
+            </button>
+        </section>
+
+        <!-- 2. GAMEPLAY SCREEN -->
+        <section id="screen-game" class="hidden flex-col space-y-4">
+            <!-- Top Dashboard Bar -->
+            <div class="flex justify-between items-center bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800 text-sm">
+                <div class="flex items-center gap-4">
+                    <div>
+                        <span id="lbl-score" class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Markah</span>
+                        <span id="game-score" class="text-2xl font-black text-emerald-300">0</span>
+                    </div>
+                    <div class="border-l border-slate-800 pl-4">
+                        <span id="lbl-streak" class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Rentetan</span>
+                        <span id="game-streak" class="text-base font-bold text-amber-400">🔥 0</span>
+                    </div>
+                </div>
+
+                <div class="text-right relative">
+                    <span id="lbl-time" class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Masa Baki</span>
+                    <div class="flex items-center justify-end gap-1">
+                        <span id="game-timer" class="text-2xl font-black text-emerald-400">60s</span>
+                    </div>
+                    <div id="time-float-container" class="absolute -top-3 right-0 pointer-events-none"></div>
+                </div>
+            </div>
+
+            <!-- Time Progress Bar -->
+            <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                <div id="timer-bar" class="h-full bg-emerald-400 rounded-full transition-all duration-200 ease-linear w-full"></div>
+            </div>
+
+            <!-- Customer Request Card -->
+            <div class="bg-slate-950/80 p-5 sm:p-6 rounded-2xl border border-emerald-500/30 relative min-h-[170px] flex flex-col justify-between shadow-inner space-y-3">
+                <div class="flex items-center justify-between">
+                    <span id="question-category" class="text-[11px] font-bold text-emerald-400 uppercase tracking-widest bg-emerald-950/80 px-2.5 py-0.5 rounded-md border border-emerald-800/50">
+                        Kategori
+                    </span>
+                    <span id="question-counter" class="text-xs font-mono text-slate-400">Pelanggan #1</span>
+                </div>
+
+                <!-- Customer Title & Requirement -->
+                <div>
+                    <h2 id="customer-name" class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2">
+                        👨‍🎓 Pelajar
+                    </h2>
+                    <p id="question-text" class="text-xs sm:text-sm text-slate-300 leading-relaxed mt-1.5 italic">
+                        Memerlukan kelengkapan untuk mencatat nota pelajaran di dalam kelas.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 4 Multiple Choice Answer Buttons -->
+            <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <!-- Options dynamically populated by JS -->
+            </div>
+        </section>
+
+        <!-- 3. GAME OVER SCREEN -->
+        <section id="screen-gameover" class="hidden flex-col items-center text-center space-y-4 py-2 animate-pop-in">
+            <div>
+                <span id="eval-grade-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    PAKAR PADANAN JUALAN
+                </span>
+                <h2 id="ui-eval-title" class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Sesi Selesai</h2>
+                <p id="ui-eval-subtitle" class="text-slate-400 text-xs sm:text-sm mt-1">Masa simulator padanan telah tamat!</p>
+            </div>
+
+            <!-- Performance Grid -->
+            <div class="w-full grid grid-cols-2 gap-3">
+                <div class="bg-slate-950/70 p-3 sm:p-4 rounded-2xl border border-slate-800 flex flex-col items-center">
+                    <span id="lbl-res-score" class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Markah Akhir</span>
+                    <span id="res-score" class="text-3xl font-black text-emerald-400 mt-0.5">0</span>
+                </div>
+                <div class="bg-slate-950/70 p-3 sm:p-4 rounded-2xl border border-slate-800 flex flex-col items-center">
+                    <span id="lbl-res-record" class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Rekod Terbaik</span>
+                    <span id="res-highscore" class="text-3xl font-black text-amber-400 mt-0.5">0</span>
+                </div>
+                <div class="bg-slate-950/70 p-3 sm:p-4 rounded-2xl border border-slate-800 flex flex-col items-center">
+                    <span id="lbl-res-accuracy" class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Ketepatan</span>
+                    <span id="res-accuracy" class="text-2xl font-extrabold text-cyan-400 mt-0.5">0%</span>
+                </div>
+                <div class="bg-slate-950/70 p-3 sm:p-4 rounded-2xl border border-slate-800 flex flex-col items-center">
+                    <span id="lbl-res-streak" class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Rentetan Maks</span>
+                    <span id="res-streak" class="text-2xl font-extrabold text-purple-400 mt-0.5">0</span>
+                </div>
+            </div>
+
+            <!-- New High Score Banner -->
+            <div id="new-high-score-banner" class="hidden w-full bg-amber-500/20 border border-amber-500/40 text-amber-300 py-2 rounded-xl text-xs sm:text-sm font-bold items-center justify-center gap-2">
+                🏆 REKOD TERTINGGI BAHARU DICAPAI! 🎉
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="w-full flex flex-col sm:flex-row gap-2.5 pt-2">
+                <button id="btn-review" class="w-full py-3.5 rounded-2xl font-bold text-sm bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 text-slate-200 transition-all">
+                    🔍 Semakan Padanan (<span id="missed-count">0</span>)
+                </button>
+                <button id="btn-restart" class="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 active:scale-95 shadow-lg shadow-emerald-500/20 transition-all text-white">
+                    MAIN SEMULA
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 4. REVIEW MATCHES MODAL -->
+    <div id="modal-review" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md p-4 items-center justify-center">
+        <div class="glass-panel w-full max-w-lg max-h-[85vh] rounded-3xl p-5 sm:p-6 flex flex-col border border-slate-700">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 id="ui-review-title" class="text-xl font-bold text-emerald-300">Semakan Padanan Pelanggan</h3>
+                <button id="btn-close-review" class="p-1 text-slate-400 hover:text-white rounded-lg">
+                    ✕
+                </button>
+            </div>
+
+            <div id="review-list-container" class="overflow-y-auto space-y-3 my-4 pr-1 text-left text-xs sm:text-sm">
+                <!-- Dynamic customer review list -->
+            </div>
+
+            <button id="btn-close-review-bottom" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio Synthesizer Class
+        class MatchAudio {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggleSound() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+
+            playCorrect() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                
+                const osc1 = this.ctx.createOscillator();
+                const gain1 = this.ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(523.25, now); // C5
+                osc1.frequency.exponentialRampToValueAtTime(880.00, now + 0.12); // A5
+                gain1.gain.setValueAtTime(0.15, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc1.connect(gain1);
+                gain1.connect(this.ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.18);
+
+                const osc2 = this.ctx.createOscillator();
+                const gain2 = this.ctx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(1046.50, now + 0.08); // C6
+                gain2.gain.setValueAtTime(0.12, now + 0.08);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc2.connect(gain2);
+                gain2.connect(this.ctx.destination);
+                osc2.start(now + 0.08);
+                osc2.stop(now + 0.25);
+            }
+
+            playWrong() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                const now = this.ctx.currentTime;
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.22);
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.22);
+            }
+
+            playFinish() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    const now = this.ctx.currentTime + (i * 0.08);
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                });
+            }
+        }
+
+        const audio = new MatchAudio();
+
+        // Canvas Floating Particle Effect
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particles = [];
+
+        function initCanvas() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < 35; i++) {
+                particles.push({
+                    x: Math.random() * bgCanvas.width,
+                    y: Math.random() * bgCanvas.height,
+                    radius: Math.random() * 2 + 1,
+                    color: Math.random() > 0.5 ? '#10b981' : '#06b6d4',
+                    alpha: Math.random() * 0.5 + 0.2,
+                    speedY: - (Math.random() * 0.6 + 0.2),
+                    speedX: (Math.random() - 0.5) * 0.3
+                });
+            }
+        }
+
+        function animateParticles() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            particles.forEach(p => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+
+                if (p.y < 0) {
+                    p.y = bgCanvas.height;
+                    p.x = Math.random() * bgCanvas.width;
+                }
+
+                bgCtx.save();
+                bgCtx.globalAlpha = p.alpha;
+                bgCtx.fillStyle = p.color;
+                bgCtx.shadowColor = p.color;
+                bgCtx.shadowBlur = 8;
+                bgCtx.beginPath();
+                bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                bgCtx.fill();
+                bgCtx.restore();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        animateParticles();
+
+        // -------------------------------------------------------------
+        // EXPANDED DATABASE OF FULLY DISTINCT CUSTOMER SCENARIOS
+        // -------------------------------------------------------------
+        const CUSTOMER_DATABASE = [
+            {
+                cat: { BM: "Kedai Alat Tulis", EN: "Stationery Store" },
+                cust: { BM: "👨‍🎓 Pelajar Sekolah", EN: "👨‍🎓 School Student" },
+                clue: { BM: "Memerlukan kelengkapan untuk mencatat nota pelajaran dan menyiap latihan di dalam kelas.", EN: "Needs supplies to write lesson notes and complete exercises in class." },
+                item: { BM: "📚 Set Buku Tulis & Alat Tulis", EN: "📚 Exercise Book & Stationery Set" }
+            },
+            {
+                cat: { BM: "Pusat Sukan", EN: "Sports Center" },
+                cust: { BM: "🏃 Pelari Maraton", EN: "🏃 Marathon Runner" },
+                clue: { BM: "Memerlukan bekas cecair ringan yang mudah dibawa untuk kekal terhidrasi semasa larian 42km.", EN: "Needs a lightweight container to stay hydrated during a 42km race." },
+                item: { BM: "🧴 Botol Air Sukan Ergonomik", EN: "🧴 Ergonomic Sports Water Bottle" }
+            },
+            {
+                cat: { BM: "Kedai Seni", EN: "Art Supply Store" },
+                cust: { BM: "🎨 Pelukis Cat Air", EN: "🎨 Watercolor Artist" },
+                clue: { BM: "Mencari alat untuk menyapu warna air pada kanvas dengan pelbagai saiz ketebalan.", EN: "Looking for tools to apply watercolors onto canvas with varying brush thickness." },
+                item: { BM: "🖌️ Set Berus Lukisan & Kanvas", EN: "🖌️ Paintbrush Set & Canvas" }
+            },
+            {
+                cat: { BM: "Peralatan Dapur", EN: "Kitchenware Store" },
+                cust: { BM: "👨‍🍳 Tukang Masak Restoran", EN: "👨‍🍳 Restaurant Chef" },
+                clue: { BM: "Memerlukan pisau pemotong keluli tahan karat bermutu tinggi untuk memotong daging dan sayur.", EN: "Needs a high-grade stainless steel cutting knife to prepare meat and vegetables." },
+                item: { BM: "🔪 Pisau Dapur Keluli Tajam", EN: "🔪 Sharp Steel Kitchen Knife" }
+            },
+            {
+                cat: { BM: "Teknologi & Komputer", EN: "Tech & Computer Store" },
+                cust: { BM: "👨‍💻 Pengatur Cara Komputer", EN: "👨‍💻 Software Programmer" },
+                clue: { BM: "Mencari papan kekunci selesa dengan tindak balas tactile untuk menaip kod sepanjang hari.", EN: "Seeking a comfortable keyboard with tactile feedback for coding all day." },
+                item: { BM: "⌨️ Papan Kekunci Mekanikal", EN: "⌨️ Mechanical Keyboard" }
+            },
+            {
+                cat: { BM: "Peralatan Fotografi", EN: "Camera Store" },
+                cust: { BM: "📷 Jurugambar Perkahwinan", EN: "📷 Wedding Photographer" },
+                clue: { BM: "Mencari lensa berpotret aperture besar untuk menghasilkan latar belakang kabur yang estetik.", EN: "Looking for a wide aperture portrait lens to produce aesthetic blurred backgrounds." },
+                item: { BM: "📸 Lensa Kamera Potret 50mm", EN: "📸 50mm Portrait Lens" }
+            },
+            {
+                cat: { BM: "Muzik & Instrumen", EN: "Music Store" },
+                cust: { BM: "🎸 Pemain Gitar Elektrik", EN: "🎸 Electric Guitarist" },
+                clue: { BM: "Memerlukan penukar tali gitar dan pik tahan lasak untuk persembahan konsert.", EN: "Needs guitar string replacements and durable picks for a concert performance." },
+                item: { BM: "🎵 Tali Gitar Keluli & Pik", EN: "🎵 Steel Guitar Strings & Picks" }
+            },
+            {
+                cat: { BM: "Farmasi & Kesihatan", EN: "Pharmacy & Health" },
+                cust: { BM: "🧑‍⚕️ Doktor Perubatan", EN: "🧑‍⚕️ Medical Doctor" },
+                clue: { BM: "Mencari instrumen diagnostik pendengaran untuk mendengar denyutan jantung dan bunyi paru-paru pesakit.", EN: "Seeking an acoustic diagnostic tool to listen to patient heartbeats and lung sounds." },
+                item: { BM: "🩺 Stetoskop Perubatan Digital", EN: "🩺 Digital Stethoscope" }
+            },
+            {
+                cat: { BM: "Pusat Berkebun", EN: "Gardening Center" },
+                cust: { BM: "👨‍🌾 Petani Sayur Organik", EN: "👨‍🌾 Organic Farmer" },
+                clue: { BM: "Memerlukan tanah bertaraf organik dan baja kompos untuk menyuburkan tanaman tanpa bahan kimia.", EN: "Needs organic soil and compost fertilizer to nourish crops without synthetic chemicals." },
+                item: { BM: "🌱 Baja Kompos Organik & Tanah", EN: "🌱 Organic Compost & Soil" }
+            },
+            {
+                cat: { BM: "Peralatan Perkhemahan", EN: "Outdoors Store" },
+                cust: { BM: "🏕️ Pengembara Hutan", EN: "🏕️ Wilderness Camper" },
+                clue: { BM: "Mencari tempat perlindungan kalis air yang boleh dipasang dengan pantas di kawasan perkhemahan.", EN: "Seeking a waterproof shelter that sets up quickly in camping grounds." },
+                item: { BM: "⛺ Khemah Kalis Air 4 Orang", EN: "⛺ 4-Person Waterproof Tent" }
+            },
+            {
+                cat: { BM: "Kedai Haiwan", EN: "Pet Shop" },
+                cust: { BM: "🐱 Pemilik Kucing", EN: "🐱 Cat Owner" },
+                clue: { BM: "Mencari tiang khas berbalut tali rami untuk kucing meremas kuku dan mengelakkan kerosakan perabot.", EN: "Looking for a sisal rope post for cats to scratch and protect home furniture." },
+                item: { BM: "🐾 Tiang Cakar Kucing (Scratcher)", EN: "🐾 Cat Scratching Post" }
+            },
+            {
+                cat: { BM: "Kopi & Barista", EN: "Coffee & Cafe" },
+                cust: { BM: "☕ Barista Kopi", EN: "☕ Coffee Barista" },
+                clue: { BM: "Memerlukan pemampat serbuk kopi (tamper) untuk meratakan serbuk espresso sebelum diekstrak.", EN: "Needs a coffee tamper to pack espresso grounds before extraction." },
+                item: { BM: "☕ Tamper Espresso Keluli", EN: "☕ Steel Espresso Tamper" }
+            },
+            {
+                cat: { BM: "Pusat Automotif", EN: "Automotive Center" },
+                cust: { BM: "👨‍🔧 Mekanik Kereta", EN: "👨‍🔧 Car Mechanic" },
+                clue: { BM: "Mencari perengkuh tork (torque wrench) untuk mengetatkan nat roda mengikut spesifikasi kilang.", EN: "Seeking a torque wrench to tighten wheel nuts to precise factory specifications." },
+                item: { BM: "🔧 Perengkuh Tork Presisi", EN: "🔧 Precision Torque Wrench" }
+            },
+            {
+                cat: { BM: "Pusat Jahitan", EN: "Tailoring Shop" },
+                cust: { BM: "🪡 Tukang Jahit Pakaian", EN: "🪡 Fashion Tailor" },
+                clue: { BM: "Memerlukan gunting kain bergerigi tajam untuk memotong fabrik nipis tanpa merosakkan benang.", EN: "Needs razor-sharp fabric shears to cut delicate textiles without fraying edges." },
+                item: { BM: "✂️ Gunting Fabrik Keluli Tajam", EN: "✂️ Sharp Fabric Shears" }
+            },
+            {
+                cat: { BM: "Sukan Air", EN: "Water Sports" },
+                cust: { BM: "🥽 Perenang Profesional", EN: "🥽 Professional Swimmer" },
+                clue: { BM: "Mencari cermin mata renang kalis kabus dan kalis air untuk latihan di kolam klorin.", EN: "Looking for anti-fog, watertight goggles for training in chlorinated pools." },
+                item: { BM: "🥽 Cermin Mata Renang Kalis Kabus", EN: "🥽 Anti-Fog Swim Goggles" }
+            },
+            {
+                cat: { BM: "Kedai Roti", EN: "Bakery" },
+                cust: { BM: "🥐 Pembuat Roti Pastri", EN: "🥐 Pastry Chef" },
+                clue: { BM: "Mencari gilingan kayu halus untuk meratakan doh roti dan croissant.", EN: "Seeking a smooth wooden rolling pin to flatten bread and croissant dough." },
+                item: { BM: "🥖 Kayu Giling Dough Roti", EN: "🥖 Wooden Rolling Pin" }
+            },
+            {
+                cat: { BM: "Sukan Basikal", EN: "Cycling Shop" },
+                cust: { BM: "🚴 Penunggang Basikal Jalanan", EN: "🚴 Road Cyclist" },
+                clue: { BM: "Memerlukan topi keledar aerodinamik bernafas untuk keselamatan semasa kayuhan jarak jauh.", EN: "Needs a breathable aerodynamic helmet for long-distance road safety." },
+                item: { BM: "🚴 Topi Keledar Basikal Aerodinamik", EN: "🚴 Aero Cycling Helmet" }
+            },
+            {
+                cat: { BM: "Kedai Bayi", EN: "Baby Store" },
+                cust: { BM: "🤱 Ibu Baru", EN: "🤱 New Mother" },
+                clue: { BM: "Memerlukan kereta sorong bayi boleh lipat yang ringan untuk berjalan-jalan di taman.", EN: "Needs a lightweight foldable baby stroller for walks in the park." },
+                item: { BM: "👶 Kereta Sorong Bayi Ringan", EN: "👶 Lightweight Baby Stroller" }
+            },
+            {
+                cat: { BM: "Peralatan Perkakas", EN: "Hardware Store" },
+                cust: { BM: "🔧 Tukang Paip Rumah", EN: "🔧 Home Plumber" },
+                clue: { BM: "Memerlukan sepana Boleh Laras pipe wrench untuk memutar nat paip sinki yang longgar.", EN: "Needs an adjustable pipe wrench to loosen stubborn sink pipe joints." },
+                item: { BM: "🛠️ Sepana Paip Boleh Laras", EN: "🛠️ Adjustable Pipe Wrench" }
+            },
+            {
+                cat: { BM: "Teknologi & Permainan", EN: "Gaming Store" },
+                cust: { BM: "🎮 Pemain eSukan", EN: "🎮 eSports Gamer" },
+                clue: { BM: "Mencari fon telinga mikrofon terbina dalam dengan bunyi sekeliling 7.1 untuk permainan kompetitif.", EN: "Seeking a headset with built-in mic and 7.1 surround sound for competitive gaming." },
+                item: { BM: "🎧 Fon Telinga Gaming 7.1", EN: "🎧 7.1 Surround Gaming Headset" }
+            },
+            {
+                cat: { BM: "Pusat Astronomi", EN: "Astronomy Center" },
+                cust: { BM: "🔭 Ahli Astronomi Amatur", EN: "🔭 Amateur Astronomer" },
+                clue: { BM: "Memerlukan alat optik berkuasa tinggi untuk memerhati bulan dan planet dari halaman rumah.", EN: "Needs a high-power optical telescope to observe the moon and planets from home." },
+                item: { BM: "🔭 Teleskop Pembesaran Tinggi", EN: "🔭 High-Power Astronomical Telescope" }
+            },
+            {
+                cat: { BM: "Seni Bina & Pelan", EN: "Architecture & Drafting" },
+                cust: { BM: "📐 Pereka Seni Bina", EN: "📐 Architect Draftsman" },
+                clue: { BM: "Mencari papan melukis presisi dan set pembaris T untuk melukis pelan binaan rumah.", EN: "Looking for a precision drafting board and T-square set to draw house blueprints." },
+                item: { BM: "📐 Papan Melukis & Set Pembaris T", EN: "📐 Drafting Board & T-Square Set" }
+            },
+            {
+                cat: { BM: "Pukulan Kayu", EN: "Woodworking Shop" },
+                cust: { BM: "🪚 Tukang Kayu Perabot", EN: "🪚 Furniture Carpenter" },
+                clue: { BM: "Memerlukan gergaji elektrik bulat tanpa wayar untuk memotong papan kayu keras secara tepat.", EN: "Needs a cordless circular saw to make clean cuts on hardwood boards." },
+                item: { BM: "🪚 Gergaji Elektrik Bulat", EN: "🪚 Cordless Circular Saw" }
+            },
+            {
+                cat: { BM: "Kesihatan & Yoga", EN: "Wellness & Yoga" },
+                cust: { BM: "🧘 Pengajar Yoga", EN: "🧘 Yoga Instructor" },
+                clue: { BM: "Mencari tikar alas senaman kalis gelincir berlapik tebal untuk sesi regangan dan meditasi.", EN: "Seeking a thick non-slip exercise mat for stretching and meditation sessions." },
+                item: { BM: "🧘 Tikar Yoga Kalis Gelincir", EN: "🧘 Non-Slip Yoga Mat" }
+            },
+            {
+                cat: { BM: "Salun & Barbershop", EN: "Grooming & Barber" },
+                cust: { BM: "💈 Tukang Gunting Rambut", EN: "💈 Barbershop Barber" },
+                clue: { BM: "Memerlukan mesin pemotong rambut elektrik wayarles bermotor kuat untuk memotong gaya fader.", EN: "Needs a powerful cordless electric hair clipper for crisp fade haircuts." },
+                item: { BM: "💈 Mesin Pemotong Rambut Elektrik", EN: "💈 Professional Hair Clipper Set" }
+            },
+            {
+                cat: { BM: "Pengembaraan Gunung", EN: "Mountain Trekking" },
+                cust: { BM: "🏔️ Pendaki Gunung", EN: "🏔️ Mountain Hiker" },
+                clue: { BM: "Mencari beg galas ergonomik 50 liter kalis air dengan sokongan tulang belakang untuk ekspedisi 3 hari.", EN: "Looking for an ergonomic 50L waterproof backpack with lumbar support for a 3-day trek." },
+                item: { BM: "🎒 Beg Galas Hiking 50L Kalis Air", EN: "🎒 50L Waterproof Hiking Backpack" }
+            },
+            {
+                cat: { BM: "Penerbangan", EN: "Aviation Shop" },
+                cust: { BM: "🧑‍✈️ Juruterbang Penerbangan", EN: "🧑‍✈️ Airline Pilot" },
+                clue: { BM: "Memerlukan cermin mata hitam polarized aviator untuk mengurangkan silau matahari di kokpit.", EN: "Needs polarized aviator sunglasses to reduce sun glare inside the cockpit." },
+                item: { BM: "🕶️ Cermin Mata Hitam Aviator", EN: "🕶️ Polarized Aviator Sunglasses" }
+            },
+            {
+                cat: { BM: "Pergigian", EN: "Dental Care" },
+                cust: { BM: "🦷 Doktor Gigi", EN: "🦷 Dentist" },
+                clue: { BM: "Memerlukan set cermin pergigian dan alat pemeriksaan karies keluli tahan karat.", EN: "Needs a stainless steel dental mirror and probe inspection kit." },
+                item: { BM: "🦷 Set Cermin & Alat Pergigian", EN: "🦷 Dental Mirror & Probe Set" }
+            },
+            {
+                cat: { BM: "Pusat Elektrik", EN: "Electrical Supplies" },
+                cust: { BM: "⚡ Juruteknik Elektrik", EN: "⚡ Electrician" },
+                clue: { BM: "Mencari multimeter digital untuk mengukur voltan, arus, dan rintangan litar elektrik.", EN: "Seeking a digital multimeter to test voltage, current, and circuit resistance." },
+                item: { BM: "📟 Multimeter Digital Elektrik", EN: "📟 Digital Multimeter Tester" }
+            },
+            {
+                cat: { BM: "Kedai Bunga", EN: "Florist Shop" },
+                cust: { BM: "💐 Pereka Bunga", EN: "💐 Florist" },
+                clue: { BM: "Memerlukan gunting dahan bunga tajam dan pita pembalut tangkai untuk gubahan bunga segar.", EN: "Needs sharp floral shears and stem wrapping tape for fresh bouquet arrangements." },
+                item: { BM: "✂️ Gunting Dahan Bunga & Pita", EN: "✂️ Floral Shears & Tape Kit" }
+            },
+            {
+                cat: { BM: "Penyelaman Skuba", EN: "Scuba Diving" },
+                cust: { BM: "🪸 Penyelam Skuba", EN: "🪸 Scuba Diver" },
+                clue: { BM: "Memerlukan sirip penyelam (fins) fleksibel untuk bergerak pantas di bawah laut.", EN: "Needs flexible diving fins to maneuver easily under ocean currents." },
+                item: { BM: "🥿 Sirip Penyelam Skuba (Fins)", EN: "🥿 Scuba Diving Fins" }
+            },
+            {
+                cat: { BM: "Muzik Klasik", EN: "Classical Music" },
+                cust: { BM: "🎹 Pemain Piano Konsert", EN: "🎹 Concert Pianist" },
+                clue: { BM: "Mencari pedal sustain piano tahan lasak dengan sambungan jack 1/4 inci universal.", EN: "Looking for a durable piano sustain pedal with a universal 1/4-inch jack." },
+                item: { BM: "🎹 Pedal Sustain Piano Universal", EN: "🎹 Universal Piano Sustain Pedal" }
+            },
+            {
+                cat: { BM: "Pusat Media & Vlogging", EN: "Media & Vlogging" },
+                cust: { BM: "📹 Pencipta Kandungan Vlogger", EN: "📹 Content Vlogger" },
+                clue: { BM: "Memerlukan lampu cincin LED ring light dengan pemegang telefon untuk pencahayaan video media sosial.", EN: "Needs an LED ring light with a smartphone mount for social media video lighting." },
+                item: { BM: "💡 Lampu Cincin LED Ring Light", EN: "💡 LED Ring Light with Stand" }
+            },
+            {
+                cat: { BM: "Cucian Kereta Professional", EN: "Auto Detailing" },
+                cust: { BM: "🚗 Pembersih Kereta Detailer", EN: "🚗 Auto Detailer" },
+                clue: { BM: "Mencari tuala microfiber penyerap tinggi untuk mengeringkan dan menggilap cat kereta tanpa calar.", EN: "Seeking ultra-absorbent microfiber towels to dry and polish car paint scratch-free." },
+                item: { BM: "🧽 Tuala Microfiber Pengilat Kereta", EN: "🧽 Car Detailing Microfiber Towels" }
+            },
+            {
+                cat: { BM: "Kedai Buku", EN: "Bookstore" },
+                cust: { BM: "📖 Pengumpul Buku", EN: "📖 Book Collector" },
+                clue: { BM: "Memerlukan penanda buku kulit buatan tangan dan lampu kecil klip untuk membaca pada waktu malam.", EN: "Needs a handcrafted leather bookmark and a clip-on LED reading light for night reading." },
+                item: { BM: "🔖 Penanda Buku Kulit & Lampu Klip", EN: "🔖 Leather Bookmark & Clip Light" }
+            },
+            {
+                cat: { BM: "Latihan Haiwan", EN: "Dog Training" },
+                cust: { BM: "🐕 Jurulatih Anjing", EN: "🐕 Dog Trainer" },
+                clue: { BM: "Mencari wisel latihan ultrasonik dan tali leher anjing tahan lasak.", EN: "Looking for an ultrasonic training whistle and heavy-duty nylon leash." },
+                item: { BM: "🪈 Wisel Latihan Ultrasonik & Tali", EN: "🪈 Ultrasonic Training Whistle" }
+            },
+            {
+                cat: { BM: "Pengecatan Bangunan", EN: "House Painting" },
+                cust: { BM: "🖌️ Tukang Cat Dinding", EN: "🖌️ House Painter" },
+                clue: { BM: "Memerlukan set penggelek cat (paint roller) dan bekas takungan cat untuk mengecat ruang tamu.", EN: "Needs a paint roller set and tray to repaint living room walls." },
+                item: { BM: "🖌️ Set Penggelek Cat & Takungan", EN: "🖌️ Paint Roller & Tray Set" }
+            },
+            {
+                cat: { BM: "Realiti Maya", EN: "Virtual Reality" },
+                cust: { BM: "🥽 Pemain Permainan VR", EN: "🥽 VR Gamer" },
+                clue: { BM: "Mencari set kepala realiti maya (VR Headset) dengan pengawal pergerakan wayarles.", EN: "Seeking a VR headset with wireless motion controllers for immersive gaming." },
+                item: { BM: "🥽 Set Kepala VR & Pengawal", EN: "🥽 VR Headset & Controllers" }
+            },
+            {
+                cat: { BM: "Ergonomik Pejabat", EN: "Office Ergonomics" },
+                cust: { BM: "🪑 Eksekutif Pejabat", EN: "🪑 Office Executive" },
+                clue: { BM: "Mencari kerusi pejabat ergonomik dengan sokongan pinggang lumbar untuk duduk 8 jam sehari.", EN: "Seeking an ergonomic office chair with lumbar support for sitting 8 hours daily." },
+                item: { BM: "🪑 Kerusi Pejabat Ergonomik Lumbar", EN: "🪑 Ergonomic Lumbar Office Chair" }
+            },
+            {
+                cat: { BM: "Skateboard", EN: "Skate Shop" },
+                cust: { BM: "🛹 Pemain Papan Seluncur", EN: "🛹 Skateboarder" },
+                clue: { BM: "Memerlukan papan seluncur (skateboard) lengkap diperbuat daripada kayu maple 7-lapis.", EN: "Needs a complete skateboard made from 7-ply maple wood with durable trucks." },
+                item: { BM: "🛹 Papan Seluncur Maple Lengkap", EN: "🛹 Complete 7-Ply Maple Skateboard" }
+            },
+            {
+                cat: { BM: "Tumbuhan Dalaman", EN: "Indoor Gardening" },
+                cust: { BM: "🪴 Ahli Botani Rumah", EN: "🪴 Indoor Botanist" },
+                clue: { BM: "Memerlukan lampu spektrum tumbuhan (grow light) LED untuk membantu fotosintesis pokok dalam bilik.", EN: "Needs a full-spectrum LED grow light to assist indoor plant photosynthesis." },
+                item: { BM: "💡 Lampu Spektrum Tumbuhan LED", EN: "💡 Full Spectrum LED Grow Light" }
+            },
+            {
+                cat: { BM: "Audio Studio", EN: "Studio Audio" },
+                cust: { BM: "🎙️ Pengacara Podcast", EN: "🎙️ Podcast Host" },
+                clue: { BM: "Mencari mikrofon kondenser USB studio untuk merakam suara yang jernih tanpa gema.", EN: "Seeking a studio USB condenser microphone for crystal-clear voice recording." },
+                item: { BM: "🎙️ Mikrofon Kondenser USB Studio", EN: "🎙️ Studio USB Condenser Microphone" }
+            },
+            {
+                cat: { BM: "Fotografi Udara", EN: "Aerial Drone Photography" },
+                cust: { BM: "🚁 Jurufoto Udara", EN: "🚁 Aerial Videographer" },
+                clue: { BM: "Memerlukan dron quadcopter berkamera 4K dengan gimbal penstabil 3-paksi.", EN: "Needs a 4K camera quadcopter drone with a 3-axis stabilizing gimbal." },
+                item: { BM: "🚁 Dron Kamera 4K Gimbal", EN: "🚁 4K Camera Stabilized Drone" }
+            },
+            {
+                cat: { BM: "Kelengkapan Pantai", EN: "Beach Gear" },
+                cust: { BM: "🏖️ Pengunjung Pantai", EN: "🏖️ Beach Goer" },
+                clue: { BM: "Mencari payung pantai lebar kalis sinar UV dan tikar pasir mudah lipat.", EN: "Looking for a wide UV-resistant beach umbrella and a sand-proof folding mat." },
+                item: { BM: "☂️ Payung Pantai Kalis UV & Tikar", EN: "☂️ UV Protection Beach Umbrella & Mat" }
+            },
+            {
+                cat: { BM: "Kecergasan & Angkat Berat", EN: "Weightlifting Fitness" },
+                cust: { BM: "🏋️ Atlet Angkat Berat", EN: "🏋️ Powerlifter" },
+                clue: { BM: "Memerlukan tali pinggang sokongan pinggang kulit tebal untuk latihan squat dan deadlift berat.", EN: "Needs a thick leather weightlifting belt for support during heavy squats and deadlifts." },
+                item: { BM: "🏋️ Tali Pinggang Kulit Angkat Berat", EN: "🏋️ Leather Weightlifting Belt" }
+            }
+        ];
+
+        // UI Text Dictionary for Malay & English
+        const UI_TEXT = {
+            BM: {
+                subtitle: "Simulasi Padanan Produk & Pelanggan",
+                title: "PADANAN PELANGGAN",
+                desc: "Padankan setiap pelanggan dengan produk atau perkhidmatan yang paling tepat! Jawapan betul +2s, jawapan salah -2s!",
+                rule1Title: "Masa Asal 60 Saat",
+                rule1Desc: "Padankan seberapa banyak pelanggan sebelum pemasa tamat.",
+                rule2Title: "Bonus Masa +2s / Penalti -2s",
+                rule2Desc: "Padanan betul menambah +2s! Padanan salah menolak -2s.",
+                rule3Title: "Pelbagai Profil Unik",
+                rule3Desc: "Merangkumi pelbagai profesion & keperluan unik tanpa ulangan!",
+                highScore: "Rekod Tertinggi:",
+                database: "Pangkalan:",
+                dbCount: `${CUSTOMER_DATABASE.length} Pelanggan Unik`,
+                btnStart: "MULAKAN PADANAN",
+                lblScore: "Markah",
+                lblStreak: "Rentetan",
+                lblTime: "Masa Baki",
+                evalTitle: "Sesi Selesai",
+                evalSubtitle: "Masa simulator padanan telah tamat!",
+                lblResScore: "Markah Akhir",
+                lblResRecord: "Rekod Terbaik",
+                lblResAccuracy: "Ketepatan",
+                lblResStreak: "Rentetan Maks",
+                btnReview: "🔍 Semakan Padanan",
+                btnRestart: "MAIN SEMULA",
+                reviewTitle: "Semakan Padanan Pelanggan",
+                btnClose: "Tutup"
+            },
+            EN: {
+                subtitle: "Customer & Product Matching Simulator",
+                title: "CUSTOMER MATCH",
+                desc: "Match every customer with their most logical product or service! Correct answer adds +2s, wrong answer deducts -2s!",
+                rule1Title: "60-Second Initial Timer",
+                rule1Desc: "Match as many customer requests as possible before time runs out.",
+                rule2Title: "+2s Time Bonus / -2s Penalty",
+                rule2Desc: "Correct match adds +2s! Wrong match deducts -2s.",
+                rule3Title: "Diverse Unique Profiles",
+                rule3Desc: "Covers various professions & unique needs without repetitions!",
+                highScore: "High Score:",
+                database: "Database:",
+                dbCount: `${CUSTOMER_DATABASE.length} Unique Customers`,
+                btnStart: "START MATCHING",
+                lblScore: "Score",
+                lblStreak: "Streak",
+                lblTime: "Time Left",
+                evalTitle: "Session Complete",
+                evalSubtitle: "Customer matching simulation finished!",
+                lblResScore: "Final Score",
+                lblResRecord: "Best Record",
+                lblResAccuracy: "Accuracy",
+                lblResStreak: "Max Streak",
+                btnReview: "🔍 Review Matches",
+                btnRestart: "PLAY AGAIN",
+                reviewTitle: "Customer Match Review",
+                btnClose: "Close"
+            }
+        };
+
+        const INITIAL_TIME = 60;
+        let currentLang = 'BM'; // Default language set to Malay
+        let shuffledQuestions = [];
+        let currentQIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let maxStreak = 0;
+        let totalAnswered = 0;
+        let totalCorrect = 0;
+        let timeLeft = INITIAL_TIME;
+        let timerInterval = null;
+        let isAnsweringBlocked = false;
+        let sessionHistory = [];
+
+        let highScore = parseInt(localStorage.getItem('customer_match_highscore') || '0', 10);
+
+        // DOM Element Cache
+        const screenStart = document.getElementById('screen-start');
+        const screenGame = document.getElementById('screen-game');
+        const screenGameover = document.getElementById('screen-gameover');
+        const modalReview = document.getElementById('modal-review');
+
+        const btnStart = document.getElementById('btn-start');
+        const btnRestart = document.getElementById('btn-restart');
+        const btnReview = document.getElementById('btn-review');
+        const btnCloseReview = document.getElementById('btn-close-review');
+        const btnCloseReviewBottom = document.getElementById('btn-close-review-bottom');
+        const btnSoundToggle = document.getElementById('btn-sound-toggle');
+        const btnLangToggle = document.getElementById('btn-lang-toggle');
+
+        const langIndicator = document.getElementById('lang-indicator');
+        const iconSoundOn = document.getElementById('icon-sound-on');
+        const iconSoundOff = document.getElementById('icon-sound-off');
+
+        const gameScoreEl = document.getElementById('game-score');
+        const gameStreakEl = document.getElementById('game-streak');
+        const gameTimerEl = document.getElementById('game-timer');
+        const timerBarEl = document.getElementById('timer-bar');
+        const floatContainer = document.getElementById('time-float-container');
+
+        const questionCategoryEl = document.getElementById('question-category');
+        const questionCounterEl = document.getElementById('question-counter');
+        const customerNameEl = document.getElementById('customer-name');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+
+        const startHighScoreEl = document.getElementById('start-high-score');
+        const resScoreEl = document.getElementById('res-score');
+        const resHighscoreEl = document.getElementById('res-highscore');
+        const resAccuracyEl = document.getElementById('res-accuracy');
+        const resStreakEl = document.getElementById('res-streak');
+        const evalGradeBadge = document.getElementById('eval-grade-badge');
+        const newHighScoreBanner = document.getElementById('new-high-score-banner');
+        const reviewListContainer = document.getElementById('review-list-container');
+
+        function updateLanguageUI() {
+            const t = UI_TEXT[currentLang];
+            langIndicator.innerText = currentLang === 'BM' ? '🌐 BM' : '🌐 EN';
+
+            document.getElementById('ui-subtitle').innerText = t.subtitle;
+            document.getElementById('ui-title').innerText = t.title;
+            document.getElementById('ui-desc').innerText = t.desc;
+
+            document.getElementById('rule-1-title').innerText = t.rule1Title;
+            document.getElementById('rule-1-desc').innerText = t.rule1Desc;
+            document.getElementById('rule-2-title').innerText = t.rule2Title;
+            document.getElementById('rule-2-desc').innerText = t.rule2Desc;
+            document.getElementById('rule-3-title').innerText = t.rule3Title;
+            document.getElementById('rule-3-desc').innerText = t.rule3Desc;
+
+            document.getElementById('lbl-high-score').innerText = t.highScore;
+            document.getElementById('lbl-total-q').innerText = t.database;
+            document.getElementById('db-count').innerText = t.dbCount;
+            btnStart.innerText = t.btnStart;
+
+            document.getElementById('lbl-score').innerText = t.lblScore;
+            document.getElementById('lbl-streak').innerText = t.lblStreak;
+            document.getElementById('lbl-time').innerText = t.lblTime;
+
+            document.getElementById('ui-eval-title').innerText = t.evalTitle;
+            document.getElementById('ui-eval-subtitle').innerText = t.evalSubtitle;
+
+            document.getElementById('lbl-res-score').innerText = t.lblResScore;
+            document.getElementById('lbl-res-record').innerText = t.lblResRecord;
+            document.getElementById('lbl-res-accuracy').innerText = t.lblResAccuracy;
+            document.getElementById('lbl-res-streak').innerText = t.lblResStreak;
+
+            btnReview.innerHTML = `🔍 ${t.btnReview} (<span id="missed-count">${sessionHistory.length}</span>)`;
+            btnRestart.innerText = t.btnRestart;
+            document.getElementById('ui-review-title').innerText = t.reviewTitle;
+            btnCloseReviewBottom.innerText = t.btnClose;
+
+            if (!screenGame.classList.contains('hidden')) {
+                renderCurrentQuestion(true);
+            }
+        }
+
+        btnLangToggle.addEventListener('click', () => {
+            currentLang = currentLang === 'BM' ? 'EN' : 'BM';
+            updateLanguageUI();
+        });
+
+        btnSoundToggle.addEventListener('click', () => {
+            const enabled = audio.toggleSound();
+            if (enabled) {
+                iconSoundOn.classList.remove('hidden');
+                iconSoundOff.classList.add('hidden');
+            } else {
+                iconSoundOn.classList.add('hidden');
+                iconSoundOff.classList.remove('hidden');
+            }
+        });
+
+        // Fisher-Yates Array Shuffle
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Dynamically create 4 choices: 1 correct product + 3 distractor products from other questions
+        function prepareQuestion(qObj, existingState = null) {
+            if (existingState) {
+                return existingState;
+            }
+
+            const correctItem = qObj.item;
+            const otherItems = CUSTOMER_DATABASE.filter(q => q.item[currentLang] !== correctItem[currentLang]);
+            const shuffledOthers = shuffleArray(otherItems);
+            
+            const distractors = [
+                shuffledOthers[0].item,
+                shuffledOthers[1].item,
+                shuffledOthers[2].item
+            ];
+
+            const combinedItems = [correctItem, ...distractors];
+            const shuffledChoices = shuffleArray(combinedItems);
+            const correctIndex = shuffledChoices.findIndex(choice => choice[currentLang] === correctItem[currentLang]);
+
+            return {
+                qObj: qObj,
+                choices: shuffledChoices,
+                correctIndex: correctIndex
+            };
+        }
+
+        let currentPreparedQ = null;
+
+        function renderCurrentQuestion(preserveChoices = false) {
+            if (currentQIndex >= shuffledQuestions.length) {
+                shuffledQuestions = shuffleArray(CUSTOMER_DATABASE);
+                currentQIndex = 0;
+            }
+
+            const rawQ = shuffledQuestions[currentQIndex];
+            if (!preserveChoices || !currentPreparedQ || currentPreparedQ.qObj !== rawQ) {
+                currentPreparedQ = prepareQuestion(rawQ);
+            }
+
+            questionCategoryEl.innerText = `${currentPreparedQ.qObj.cat[currentLang]}`;
+            questionCounterEl.innerText = `${currentLang === 'BM' ? 'Pelanggan' : 'Customer'} #${totalAnswered + 1}`;
+            customerNameEl.innerText = currentPreparedQ.qObj.cust[currentLang];
+            questionTextEl.innerText = `"${currentPreparedQ.qObj.clue[currentLang]}"`;
+
+            optionsContainer.innerHTML = '';
+            isAnsweringBlocked = false;
+
+            currentPreparedQ.choices.forEach((choiceObj, index) => {
+                const optText = choiceObj[currentLang];
+                const btn = document.createElement('button');
+                btn.className = 'glass-btn w-full p-4 rounded-2xl text-left text-xs sm:text-sm font-semibold text-slate-200 transition-all duration-200 flex items-center justify-between group';
+                btn.innerHTML = `
+                    <span class="flex-1 pr-2">${optText}</span>
+                    <span class="w-6 h-6 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] text-slate-400 group-hover:border-emerald-500 group-hover:text-emerald-300 transition-colors">${String.fromCharCode(65 + index)}</span>
+                `;
+                btn.addEventListener('click', () => handleAnswer(index, btn));
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // Floating time modifier badge animation (+2s / -2s)
+        function triggerTimeDeltaAnimation(delta) {
+            const el = document.createElement('div');
+            const isPositive = delta > 0;
+            el.className = `${isPositive ? 'text-emerald-400' : 'text-rose-500'} font-black text-sm sm:text-base animate-float-up shadow-sm`;
+            el.innerText = isPositive ? `+${delta}s` : `${delta}s`;
+            floatContainer.appendChild(el);
+
+            setTimeout(() => {
+                if (el.parentNode) {
+                    el.parentNode.removeChild(el);
+                }
+            }, 800);
+        }
+
+        function handleAnswer(selectedIndex, clickedBtn) {
+            if (isAnsweringBlocked) return;
+            isAnsweringBlocked = true;
+
+            const isCorrect = (selectedIndex === currentPreparedQ.correctIndex);
+            totalAnswered++;
+
+            const allButtons = optionsContainer.querySelectorAll('button');
+
+            if (isCorrect) {
+                totalCorrect++;
+                streak++;
+                if (streak > maxStreak) maxStreak = streak;
+
+                // Add +2 seconds bonus
+                timeLeft += 2;
+                triggerTimeDeltaAnimation(2);
+
+                const earnedPoints = 100 + (streak * 25);
+                score += earnedPoints;
+
+                clickedBtn.classList.add('btn-correct');
+                audio.playCorrect();
+
+                sessionHistory.push({
+                    cust: currentPreparedQ.qObj.cust,
+                    clue: currentPreparedQ.qObj.clue,
+                    category: currentPreparedQ.qObj.cat,
+                    userAns: currentPreparedQ.choices[selectedIndex],
+                    correctAns: currentPreparedQ.choices[currentPreparedQ.correctIndex],
+                    isCorrect: true
+                });
+            } else {
+                streak = 0;
+                
+                // Deduct -2 seconds penalty
+                timeLeft = Math.max(0, timeLeft - 2);
+                triggerTimeDeltaAnimation(-2);
+
+                clickedBtn.classList.add('btn-wrong');
+                if (allButtons[currentPreparedQ.correctIndex]) {
+                    allButtons[currentPreparedQ.correctIndex].classList.add('btn-correct');
+                }
+                audio.playWrong();
+
+                sessionHistory.push({
+                    cust: currentPreparedQ.qObj.cust,
+                    clue: currentPreparedQ.qObj.clue,
+                    category: currentPreparedQ.qObj.cat,
+                    userAns: currentPreparedQ.choices[selectedIndex],
+                    correctAns: currentPreparedQ.choices[currentPreparedQ.correctIndex],
+                    isCorrect: false
+                });
+
+                const main = document.getElementById('main-container');
+                main.classList.remove('animate-shake');
+                void main.offsetWidth;
+                main.classList.add('animate-shake');
+            }
+
+            gameScoreEl.innerText = score;
+            gameStreakEl.innerText = `🔥 ${streak}`;
+            gameTimerEl.innerText = `${timeLeft}s`;
+
+            if (timeLeft <= 0) {
+                endGame();
+                return;
+            }
+
+            setTimeout(() => {
+                currentQIndex++;
+                renderCurrentQuestion();
+            }, 200);
+        }
+
+        function startTimer() {
+            timeLeft = INITIAL_TIME;
+            gameTimerEl.innerText = `${timeLeft}s`;
+            timerBarEl.style.width = '100%';
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft < 0) timeLeft = 0;
+
+                gameTimerEl.innerText = `${timeLeft}s`;
+
+                const pct = Math.min(100, (timeLeft / INITIAL_TIME) * 100);
+                timerBarEl.style.width = `${pct}%`;
+
+                if (timeLeft <= 10) {
+                    timerBarEl.className = 'h-full bg-rose-500 rounded-full transition-all duration-200 ease-linear w-full';
+                    gameTimerEl.className = 'text-2xl font-black text-rose-400 animate-pulse';
+                } else if (timeLeft <= 25) {
+                    timerBarEl.className = 'h-full bg-amber-400 rounded-full transition-all duration-200 ease-linear w-full';
+                    gameTimerEl.className = 'text-2xl font-black text-amber-400';
+                } else {
+                    timerBarEl.className = 'h-full bg-emerald-400 rounded-full transition-all duration-200 ease-linear w-full';
+                    gameTimerEl.className = 'text-2xl font-black text-emerald-400';
+                }
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            score = 0;
+            streak = 0;
+            maxStreak = 0;
+            totalAnswered = 0;
+            totalCorrect = 0;
+            currentQIndex = 0;
+            sessionHistory = [];
+
+            shuffledQuestions = shuffleArray(CUSTOMER_DATABASE);
+
+            gameScoreEl.innerText = '0';
+            gameStreakEl.innerText = '🔥 0';
+
+            screenStart.classList.add('hidden');
+            screenGameover.classList.add('hidden');
+            screenGame.classList.remove('hidden');
+            screenGame.classList.add('flex');
+
+            renderCurrentQuestion();
+            startTimer();
+        }
+
+        function getEvaluationBadge(finalScore, accuracy) {
+            if (finalScore >= 3500 && accuracy >= 80) {
+                return { title: currentLang === 'BM' ? "PENGURUS JUALAN BINTANG" : "STAR SALES MANAGER", color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" };
+            } else if (finalScore >= 2200) {
+                return { title: currentLang === 'BM' ? "PAKAR PADANAN PELANGGAN" : "CUSTOMER MATCH EXPERT", color: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40" };
+            } else if (finalScore >= 1200) {
+                return { title: currentLang === 'BM' ? "PERUNDING JUALAN SENIOR" : "SENIOR SALES CONSULTANT", color: "bg-purple-500/20 text-purple-300 border-purple-500/40" };
+            } else {
+                return { title: currentLang === 'BM' ? "PEMBANTU JUALAN JUNIOR" : "JUNIOR SALES ASSOCIATE", color: "bg-amber-500/20 text-amber-300 border-amber-500/40" };
+            }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            audio.playFinish();
+
+            let isNewHigh = false;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('customer_match_highscore', highScore.toString());
+                isNewHigh = true;
+            }
+
+            const accuracyVal = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+            const evalGrade = getEvaluationBadge(score, accuracyVal);
+
+            resScoreEl.innerText = score;
+            resHighscoreEl.innerText = highScore;
+            resAccuracyEl.innerText = `${accuracyVal}%`;
+            resStreakEl.innerText = `🔥 ${maxStreak}`;
+            document.getElementById('missed-count').innerText = sessionHistory.length;
+
+            evalGradeBadge.innerText = evalGrade.title;
+            evalGradeBadge.className = `px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border ${evalGrade.color}`;
+
+            if (isNewHigh && score > 0) {
+                newHighScoreBanner.classList.remove('hidden');
+                newHighScoreBanner.classList.add('flex');
+            } else {
+                newHighScoreBanner.classList.add('hidden');
+                newHighScoreBanner.classList.remove('flex');
+            }
+
+            screenGame.classList.add('hidden');
+            screenGame.classList.remove('flex');
+            screenGameover.classList.remove('hidden');
+            screenGameover.classList.add('flex');
+        }
+
+        function populateReviewModal() {
+            reviewListContainer.innerHTML = '';
+            if (sessionHistory.length === 0) {
+                reviewListContainer.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        ${currentLang === 'BM' ? 'Tiada pelanggan dipadankan.' : 'No customers matched.'}
+                    </div>
+                `;
+                return;
+            }
+
+            sessionHistory.forEach((item) => {
+                const div = document.createElement('div');
+                div.className = `p-3.5 rounded-xl border ${item.isCorrect ? 'bg-slate-900/60 border-emerald-900/50' : 'bg-slate-900/90 border-rose-900/50'} space-y-1.5`;
+                div.innerHTML = `
+                    <div class="flex items-center justify-between text-[10px] font-bold uppercase">
+                        <span class="text-emerald-400">${item.cust[currentLang]}</span>
+                        <span class="${item.isCorrect ? 'text-emerald-400' : 'text-rose-400'}">${item.isCorrect ? '✅ BETUL / CORRECT' : '❌ SALAH / WRONG'}</span>
+                    </div>
+                    <p class="text-slate-200 font-semibold text-xs sm:text-sm">"${item.clue[currentLang]}"</p>
+                    <div class="text-xs pt-1 space-y-0.5">
+                        <div class="${item.isCorrect ? 'text-emerald-400' : 'text-rose-400'}">👉 ${currentLang === 'BM' ? 'Pilihan Anda:' : 'Your Choice:'} ${item.userAns[currentLang]}</div>
+                        ${!item.isCorrect ? `<div class="text-emerald-400">✅ ${currentLang === 'BM' ? 'Produk Tepat:' : 'Exact Match:'} ${item.correctAns[currentLang]}</div>` : ''}
+                    </div>
+                `;
+                reviewListContainer.appendChild(div);
+            });
+        }
+
+        // Review Modal Event Listeners
+        btnReview.addEventListener('click', () => {
+            populateReviewModal();
+            modalReview.classList.remove('hidden');
+            modalReview.classList.add('flex');
+        });
+
+        const closeModal = () => {
+            modalReview.classList.add('hidden');
+            modalReview.classList.remove('flex');
+        };
+
+        btnCloseReview.addEventListener('click', closeModal);
+        btnCloseReviewBottom.addEventListener('click', closeModal);
+
+        btnStart.addEventListener('click', () => {
+            audio.init();
+            startGame();
+        });
+
+        btnRestart.addEventListener('click', () => {
+            audio.init();
+            startGame();
+        });
+
+        // Initialize high score and UI language text
+        startHighScoreEl.innerText = highScore;
+        updateLanguageUI();
+    </script>
+</body>
+</html>

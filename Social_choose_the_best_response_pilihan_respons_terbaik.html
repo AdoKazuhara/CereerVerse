@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilihan Respons Terbaik | Choose the Best Response</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#0b0f19',
+                        roseGlow: '#f43f5e',
+                        violetGlow: '#8b5cf6',
+                        emeraldGlow: '#10b981',
+                        cyanGlow: '#06b6d4',
+                        amberGlow: '#f59e0b'
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shake': 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both',
+                        'pop-in': 'popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                        'float-up': 'floatUp 0.8s ease-out forwards'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { filter: 'drop-shadow(0 0 12px rgba(244, 63, 94, 0.4))' },
+                            '50%': { filter: 'drop-shadow(0 0 24px rgba(139, 92, 246, 0.7))' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-2px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(4px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-6px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(6px, 0, 0)' },
+                        },
+                        popIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.92)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                        floatUp: {
+                            '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+                            '100%': { opacity: '0', transform: 'translateY(-30px) scale(1.2)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f8fafc;
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(244, 63, 94, 0.15);
+        }
+
+        .glass-btn {
+            background: rgba(30, 41, 59, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(8px);
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-btn:hover:not(:disabled) {
+            background: rgba(51, 65, 85, 0.9);
+            border-color: rgba(244, 63, 94, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 63, 94, 0.25);
+        }
+
+        .glass-btn:active:not(:disabled) {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .btn-correct {
+            background: rgba(16, 185, 129, 0.45) !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.7) !important;
+            color: #ffffff !important;
+        }
+
+        .btn-wrong {
+            background: rgba(244, 63, 94, 0.45) !important;
+            border-color: #f43f5e !important;
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.7) !important;
+            color: #ffffff !important;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(244, 63, 94, 0.4);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-3 sm:p-6 relative font-sans">
+
+    <!-- Ambient Floating Particles Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Top Controls Bar -->
+    <div class="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <button id="btn-lang-toggle" class="glass-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-rose-400 hover:text-white flex items-center gap-1.5 shadow-md">
+            <span id="lang-indicator">🌐 BM</span>
+        </button>
+
+        <button id="btn-sound-toggle" aria-label="Toggle Sound" class="glass-btn p-2.5 rounded-xl text-rose-400 hover:text-white flex items-center justify-center shadow-md">
+            <svg id="icon-sound-on" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+            </svg>
+            <svg id="icon-sound-off" class="w-5 h-5 hidden text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+            </svg>
+        </button>
+    </div>
+
+    <main id="main-container" class="w-full max-w-xl glass-panel rounded-3xl p-5 sm:p-8 relative z-10 my-auto border border-rose-500/30">
+
+        <!-- 1. START SCREEN -->
+        <section id="screen-start" class="flex flex-col items-center text-center space-y-5 py-2 animate-pop-in">
+            <div class="relative mt-2">
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-rose-500 via-purple-500 to-indigo-500 p-1 flex items-center justify-center animate-pulse-glow">
+                    <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-4xl sm:text-5xl">
+                        🤝
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <span id="ui-subtitle" class="px-3 py-1 rounded-full text-[11px] font-bold tracking-widest uppercase bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                    Simulasi Kepimpinan & Empati Sosial
+                </span>
+                <h1 id="ui-title" class="text-3xl sm:text-5xl font-black tracking-tight mt-3 bg-gradient-to-r from-rose-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent">
+                    RESPONS TERBAIK
+                </h1>
+                <p id="ui-desc" class="text-slate-300 mt-2 text-xs sm:text-sm max-w-md leading-relaxed">
+                    Baca setiap situasi sosial dan pilih respons paling bijak & berempati! Jawapan betul +2s, jawapan salah -2s!
+                </p>
+            </div>
+
+            <!-- Rules Overview Card -->
+            <div class="w-full bg-slate-950/70 rounded-2xl p-4 text-left text-xs sm:text-sm space-y-3 border border-slate-800">
+                <div class="flex items-center gap-3">
+                    <span class="p-2 bg-rose-500/20 text-rose-400 rounded-lg text-lg">⏱️</span>
+                    <div>
+                        <strong id="rule-1-title" class="text-white block">Masa Asal 60 Saat</strong>
+                        <span id="rule-1-desc" class="text-slate-400 text-xs">Pilih respons terbaik untuk seberapa banyak situasi sebelum pemasa tamat.</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-lg">⚡</span>
+                    <div>
+                        <strong id="rule-2-title" class="text-white block">Bonus Masa +2s / Penalti -2s</strong>
+                        <span id="rule-2-desc" class="text-slate-400 text-xs">Jawapan betul menambah +2s! Jawapan salah menolak -2s.</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg text-lg">🎯</span>
+                    <div>
+                        <strong id="rule-3-title" class="text-white block">100 Situasi Unik Sekolah Menengah</strong>
+                        <span id="rule-3-desc" class="text-slate-400 text-xs">Merangkumi persahabatan, etika, buli siber & kerjasama tanpa ulangan!</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between w-full text-xs uppercase tracking-wider text-slate-400 font-semibold px-2">
+                <div><span id="lbl-high-score">Rekod Tertinggi:</span> <span id="start-high-score" class="text-rose-400 font-bold text-sm">0</span></div>
+                <div><span id="lbl-total-q">Pangkalan:</span> <span id="db-count" class="text-indigo-400 font-bold text-sm">100 Situasi</span></div>
+            </div>
+
+            <button id="btn-start" class="w-full py-4 rounded-2xl font-black text-lg bg-gradient-to-r from-rose-500 via-purple-500 to-indigo-500 hover:from-rose-400 hover:to-indigo-400 active:scale-95 shadow-lg shadow-rose-500/25 transition-all duration-200 text-white tracking-wide">
+                MULAKAN SIMULASI
+            </button>
+        </section>
+
+        <!-- 2. GAMEPLAY SCREEN -->
+        <section id="screen-game" class="hidden flex-col space-y-4">
+            <!-- Top Dashboard Bar -->
+            <div class="flex justify-between items-center bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800 text-sm">
+                <div class="flex items-center gap-4">
+                    <div>
+                        <span id="lbl-score" class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Markah</span>
+                        <span id="game-score" class="text-2xl font-black text-rose-300">0</span>
+                    </div>
+                    <div class="border-l border-slate-800 pl-4">
+                        <span id="lbl-streak" class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Rentetan</span>
+                        <span id="game-streak" class="text-base font-bold text-amber-400">🔥 0</span>
+                    </div>
+                </div>
+
+                <div class="text-right relative">
+                    <span id="lbl-time" class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Masa Baki</span>
+                    <div class="flex items-center justify-end gap-1">
+                        <span id="game-timer" class="text-2xl font-black text-rose-400">60s</span>
+                    </div>
+                    <div id="time-float-container" class="absolute -top-3 right-0 pointer-events-none"></div>
+                </div>
+            </div>
+
+            <!-- Time Progress Bar -->
+            <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                <div id="timer-bar" class="h-full bg-rose-400 rounded-full transition-all duration-200 ease-linear w-full"></div>
+            </div>
+
+            <!-- Situation Card -->
+            <div class="bg-slate-950/80 p-5 sm:p-6 rounded-2xl border border-rose-500/30 relative min-h-[160px] flex flex-col justify-between shadow-inner space-y-3">
+                <div class="flex items-center justify-between">
+                    <span id="question-category" class="text-[11px] font-bold text-rose-400 uppercase tracking-widest bg-rose-950/80 px-2.5 py-0.5 rounded-md border border-rose-800/50">
+                        Kategori
+                    </span>
+                    <span id="question-counter" class="text-xs font-mono text-slate-400">Situasi #1</span>
+                </div>
+
+                <!-- Situation Prompt -->
+                <div>
+                    <span id="lbl-situation-tag" class="text-[10px] uppercase tracking-wider font-extrabold text-indigo-400 block mb-1">📌 Situasi:</span>
+                    <h2 id="question-text" class="text-base sm:text-lg font-bold text-white leading-snug">
+                        Rakan anda berasa sedih dan kecewa selepas gagal dalam ujian Matematik.
+                    </h2>
+                </div>
+            </div>
+
+            <!-- 4 Multiple Choice Answer Buttons -->
+            <div id="options-container" class="grid grid-cols-1 gap-2.5 pt-1">
+                <!-- Options dynamically populated by JS -->
+            </div>
+        </section>
+
+        <!-- 3. GAME OVER SCREEN -->
+        <section id="screen-gameover" class="hidden flex-col items-center text-center space-y-4 py-2 animate-pop-in">
+            <div>
+                <span id="eval-grade-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                    PEMIMPIN BEREMPATI TINGGI
+                </span>
+                <h2 id="ui-eval-title" class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Simulasi Selesai</h2>
+                <p id="ui-eval-subtitle" class="text-slate-400 text-xs sm:text-sm mt-1">Masa pemasa respons telah tamat!</p>
+            </div>
+
+            <!-- Performance Grid -->
+            <div class="w-full grid grid-cols-2 gap-3">
+                <div class="bg-slate-950/70 p-3 sm:p-4 rounded-2xl border border-slate-800 flex flex-col items-center">
+                    <span id="lbl-res-score" class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Markah Akhir</span>
+                    <span id="res-score" class="text-3xl font-black text-rose-400 mt-0.5">0</span>
+                </div>
+                <div class="bg-slate-950/70 p-3 sm:p-4 rounded-2xl border border-slate-800 flex flex-col items-center">
+                    <span id="lbl-res-record" class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Rekod Terbaik</span>
+                    <span id="res-highscore" class="text-3xl font-black text-amber-400 mt-0.5">0</span>
+                </div>
+                <div class="bg-slate-950/70 p-3 sm:p-4 rounded-2xl border border-slate-800 flex flex-col items-center">
+                    <span id="lbl-res-accuracy" class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Ketepatan</span>
+                    <span id="res-accuracy" class="text-2xl font-extrabold text-indigo-400 mt-0.5">0%</span>
+                </div>
+                <div class="bg-slate-950/70 p-3 sm:p-4 rounded-2xl border border-slate-800 flex flex-col items-center">
+                    <span id="lbl-res-streak" class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Rentetan Maks</span>
+                    <span id="res-streak" class="text-2xl font-extrabold text-purple-400 mt-0.5">0</span>
+                </div>
+            </div>
+
+            <!-- New High Score Banner -->
+            <div id="new-high-score-banner" class="hidden w-full bg-amber-500/20 border border-amber-500/40 text-amber-300 py-2 rounded-xl text-xs sm:text-sm font-bold items-center justify-center gap-2">
+                🏆 REKOD TERTINGGI BAHARU DICAPAI! 🎉
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="w-full flex flex-col sm:flex-row gap-2.5 pt-2">
+                <button id="btn-review" class="w-full py-3.5 rounded-2xl font-bold text-sm bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 text-slate-200 transition-all">
+                    🔍 Semakan Respons (<span id="missed-count">0</span>)
+                </button>
+                <button id="btn-restart" class="w-full py-3.5 rounded-2xl font-bold text-base bg-gradient-to-r from-rose-500 via-purple-500 to-indigo-500 hover:from-rose-400 hover:to-indigo-400 active:scale-95 shadow-lg shadow-rose-500/20 transition-all text-white">
+                    MAIN SEMULA
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 4. REVIEW MODAL -->
+    <div id="modal-review" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md p-4 items-center justify-center">
+        <div class="glass-panel w-full max-w-lg max-h-[85vh] rounded-3xl p-5 sm:p-6 flex flex-col border border-slate-700">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <h3 id="ui-review-title" class="text-xl font-bold text-rose-300">Semakan Respons Situasi</h3>
+                <button id="btn-close-review" class="p-1 text-slate-400 hover:text-white rounded-lg">
+                    ✕
+                </button>
+            </div>
+
+            <div id="review-list-container" class="overflow-y-auto space-y-3 my-4 pr-1 text-left text-xs sm:text-sm">
+                <!-- Dynamic scenario review list -->
+            </div>
+
+            <button id="btn-close-review-bottom" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio Synthesizer Class
+        class ResponseAudio {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggleSound() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+
+            playCorrect() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                
+                const osc1 = this.ctx.createOscillator();
+                const gain1 = this.ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(587.33, now); // D5
+                osc1.frequency.exponentialRampToValueAtTime(880.00, now + 0.12); // A5
+                gain1.gain.setValueAtTime(0.15, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc1.connect(gain1);
+                gain1.connect(this.ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.18);
+
+                const osc2 = this.ctx.createOscillator();
+                const gain2 = this.ctx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(1174.66, now + 0.08); // D6
+                gain2.gain.setValueAtTime(0.12, now + 0.08);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc2.connect(gain2);
+                gain2.connect(this.ctx.destination);
+                osc2.start(now + 0.08);
+                osc2.stop(now + 0.25);
+            }
+
+            playWrong() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                const now = this.ctx.currentTime;
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.22);
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.22);
+            }
+
+            playFinish() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                [587.33, 739.99, 880.00, 1174.66].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    const now = this.ctx.currentTime + (i * 0.08);
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                });
+            }
+        }
+
+        const audio = new ResponseAudio();
+
+        // Canvas Ambient Particle Effect
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particles = [];
+
+        function initCanvas() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < 35; i++) {
+                particles.push({
+                    x: Math.random() * bgCanvas.width,
+                    y: Math.random() * bgCanvas.height,
+                    radius: Math.random() * 2.5 + 1,
+                    color: Math.random() > 0.5 ? '#f43f5e' : '#8b5cf6',
+                    alpha: Math.random() * 0.5 + 0.2,
+                    speedY: - (Math.random() * 0.5 + 0.2),
+                    speedX: (Math.random() - 0.5) * 0.3
+                });
+            }
+        }
+
+        function animateParticles() {
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            particles.forEach(p => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+
+                if (p.y < 0) {
+                    p.y = bgCanvas.height;
+                    p.x = Math.random() * bgCanvas.width;
+                }
+
+                bgCtx.save();
+                bgCtx.globalAlpha = p.alpha;
+                bgCtx.fillStyle = p.color;
+                bgCtx.shadowColor = p.color;
+                bgCtx.shadowBlur = 8;
+                bgCtx.beginPath();
+                bgCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                bgCtx.fill();
+                bgCtx.restore();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        animateParticles();
+
+        // -------------------------------------------------------------
+        // 100 UNIQUE NON-REPEATING SOCIAL & DECISION-MAKING SCENARIOS
+        // -------------------------------------------------------------
+        const SCENARIO_DATABASE = [
+            {
+                cat: { BM: "Empati & Persahabatan", EN: "Empathy & Friendship" },
+                sit: { BM: "Rakan anda berasa sedih dan kecewa selepas gagal dalam ujian Matematik.", EN: "Your friend feels sad and disappointed after failing a Math test." },
+                best: { BM: "Beri sokongan moral dan tawarkan bantuan untuk mengulang kaji bersama.", EN: "Offer emotional support and offer to study together for the retake." },
+                wrong: [
+                    { BM: "Ketawakan keputusannya di hadapan rakan-rakan lain.", EN: "Laugh at their marks in front of other classmates." },
+                    { BM: "Abaikan dia dan pura-pura tidak tahu apa-apa.", EN: "Ignore them and pretend not to notice their feelings." },
+                    { BM: "Membanggakan markah tinggi anda di hadapannya.", EN: "Boast about your own high score directly in front of them." }
+                ]
+            },
+            {
+                cat: { BM: "Komunikasi & Etika", EN: "Communication & Ethics" },
+                sit: { BM: "Rakan anda secara tidak sengaja menjatuhkan wang kertas RM10 di koridor sekolah.", EN: "Your friend accidentally drops a RM10 note in the school corridor." },
+                best: { BM: "Kutip wang tersebut dan pulangkan kepada rakan anda dengan segera.", EN: "Pick up the money and return it to your friend immediately." },
+                wrong: [
+                    { BM: "Ambil wang tersebut dan simpan dalam poket sendiri.", EN: "Take the money and hide it in your own pocket." },
+                    { BM: "Biarkan wang itu di atas lantai untuk diambil orang lain.", EN: "Leave the money on the floor for someone else to pick up." },
+                    { BM: "Gunakan wang itu untuk membeli makanan di kantin.", EN: "Use the money to buy snacks at the canteen." }
+                ]
+            },
+            {
+                cat: { BM: "Keselamatan Digital", EN: "Digital Safety" },
+                sit: { BM: "Seseorang yang tidak dikenali meminta alamat rumah anda di media sosial.", EN: "A stranger on social media asks for your home address." },
+                best: { BM: "Tolak permintaan tersebut, sekat akaun itu dan beritahu ibu bapa.", EN: "Refuse the request, block the account, and inform your parents." },
+                wrong: [
+                    { BM: "Berikan alamat penuh kerana ingin bersikap peramah.", EN: "Give your full home address to be friendly." },
+                    { BM: "Berikan alamat sekolah dan nombor telefon bimbit anda.", EN: "Give your school address and mobile phone number instead." },
+                    { BM: "Mengajak orang asing tersebut berjumpa di taman berdekatan.", EN: "Invite the stranger to meet up at a nearby park." }
+                ]
+            },
+            {
+                cat: { BM: "Kerjasama Pasukan", EN: "Teamwork & Collaboration" },
+                sit: { BM: "Ahli kumpulan anda berasa gementar untuk membentangkan tugasan di hadapan kelas.", EN: "A group member feels nervous about presenting the project to the class." },
+                best: { BM: "Beri dorongan dan bantu dia berlatih bahagian pembentangannya.", EN: "Encourage them and help them practice their presentation part." },
+                wrong: [
+                    { BM: "Paksa dia bercakap sorang-sorang di hadapan kelas.", EN: "Force them to present everything alone without preparation." },
+                    { BM: "Marahi dia kerana memperlahankan kerja kumpulan.", EN: "Scold them for slowing down the group process." },
+                    { BM: "Gantikan tempatnya dan kecam ketakutannya di hadapan guru.", EN: "Take over their turn completely while mocking their fear." }
+                ]
+            },
+            {
+                cat: { BM: "Anti-Buli & Siber", EN: "Anti-Bullying & Cyber Safety" },
+                sit: { BM: "Anda melihat mesej berbaur ejekan dihantar ke dalam kumpulan WhatsApp kelas.", EN: "You notice hurtful mocking messages sent into the class WhatsApp group." },
+                best: { BM: "Tegur perbuatan tersebut secara sopan dan maklumkan kepada guru kelas.", EN: "Politely address the toxic behavior and inform the class teacher." },
+                wrong: [
+                    { BM: "Sertai ejekan tersebut dengan menghantar sticker lucu.", EN: "Join in the mocking by sending funny meme stickers." },
+                    { BM: "Sebarkan mesej ejekan tersebut ke kumpulan lain.", EN: "Forward the offensive messages to other group chats." },
+                    { BM: "Goncang telefon dan sorokkan kejadian itu daripada guru.", EN: "Ignore it and help hide the incident from teachers." }
+                ]
+            },
+            {
+                cat: { BM: "Integriti & Kejujuran", EN: "Integrity & Honesty" },
+                sit: { BM: "Anda secara tidak sengaja merosakkan buku rujukan yang dipinjam daripada perpustakaan.", EN: "You accidentally tear a page of a library reference book you borrowed." },
+                best: { BM: "Maklumkan kepada pustakawan secara jujur dan tawarkan ganti rugi.", EN: "Inform the librarian honestly and offer to pay for damages." },
+                wrong: [
+                    { BM: "Letakkan semula buku itu di rak secara senyap-senyap.", EN: "Put the damaged book back on the shelf secretly." },
+                    { BM: "Tuduh rakan sekelas yang merosakkan buku tersebut.", EN: "Blame a classmate for causing the damage." },
+                    { BM: "Buang buku tersebut ke dalam tong sampah sekolah.", EN: "Throw the damaged book away in the school trash bin." }
+                ]
+            },
+            {
+                cat: { BM: "Hormat & Kesusilaan", EN: "Respect & Manners" },
+                sit: { BM: "Guru anda sedang membawa banyak buku latihan yang berat di tangga.", EN: "Your teacher is carrying a heavy stack of exercise books near the stairs." },
+                best: { BM: "Tawarkan bantuan untuk mengangkat sebahagian buku tersebut.", EN: "Politely offer to help carry a portion of the books." },
+                wrong: [
+                    { BM: "Berlari memotong guru tanpa menghiraukan keadaannya.", EN: "Run past the teacher without paying any attention." },
+                    { BM: "Melihat dari jauh sambil berbual dengan rakan.", EN: "Watch from afar while chatting lazily with friends." },
+                    { BM: "Mengambil gambar guru tersebut untuk dimuat naik ke media sosial.", EN: "Snap a photo of the teacher to post online." }
+                ]
+            },
+            {
+                cat: { BM: "Pengurusan Emosi", EN: "Emotion Management" },
+                sit: { BM: "Anda rasa sangat marah kerana cadangan anda ditolak semasa mesyuarat kelab.", EN: "You feel angry because your idea was rejected during a club meeting." },
+                best: { BM: "Tarik nafas dalam-dalam, dengar pandangan orang lain dan berbincang rasional.", EN: "Take a deep breath, listen to others' views, and discuss rationally." },
+                wrong: [
+                    { BM: "Menghempas pintu dan keluar dari bilik mesyuarat.", EN: "Slam the door and storm out of the meeting room." },
+                    { BM: "Mencaci ahli mesyuarat lain secara berhadapan.", EN: "Insult other meeting members directly." },
+                    { BM: "Merosakkan harta benda sekolah di dalam bilik tersebut.", EN: "Damage school property inside the meeting room." }
+                ]
+            },
+            {
+                cat: { BM: "Empati & Persahabatan", EN: "Empathy & Friendship" },
+                sit: { BM: "Rakan sekelas anda yang baru berpindah kelihatan duduk berseorangan semasa waktu rehat.", EN: "A newly transferred classmate is sitting all alone during recess." },
+                best: { BM: "Jemput dia duduk bersama dan kenalkan dia kepada rakan-rakan lain.", EN: "Invite them to sit together and introduce them to your friends." },
+                wrong: [
+                    { BM: "Pulaukan dia kerana dia belum biasa dengan suasana sekolah.", EN: "Exclude them because they are unfamiliar with the school." },
+                    { BM: "Bisik-bisik mengenai penampilan mukanya dengan rakan lain.", EN: "Whisper comments about their appearance with others." },
+                    { BM: "Mengejek gaya percakapannya yang berbeza.", EN: "Mock their different speaking dialect or accent." }
+                ]
+            },
+            {
+                cat: { BM: "Tanggungjawab Sosial", EN: "Social Responsibility" },
+                sit: { BM: "Anda ternampak paip air di tandas sekolah bocor dan melimpah air.", EN: "You notice a leaking tap overflowing water in the school restroom." },
+                best: { BM: "Matikan paip jika boleh dan laporkan segera kepada pekerja penyelenggara atau guru.", EN: "Turn off the tap if possible and report immediately to maintenance staff or teacher." },
+                wrong: [
+                    { BM: "Biarkan air melimpah kerana bukan rumah sendiri.", EN: "Ignore the overflow since it isn't your house." },
+                    { BM: "Bermain air tersebut bersama rakan-rakan.", EN: "Play with the splashing water with your friends." },
+                    { BM: "Memburukkan keadaan dengan mematahkan paip air.", EN: "Worsen the leak by breaking the handle further." }
+                ]
+            },
+            {
+                cat: { BM: "Keselamatan Siber", EN: "Cyber Safety" },
+                sit: { BM: "Anda menerima pautan (link) yang menjanjikan hadiah percuma daripada nombor tidak dikenali.", EN: "You receive a link promising free prizes from an unknown number." },
+                best: { BM: "Jangan klik pautan tersebut, padam mesej dan laporkan sebagai spam.", EN: "Do not click the link, delete the message, and report as spam." },
+                wrong: [
+                    { BM: "Klik pautan itu dan isi semua maklumat peribadi bank ibu bapa.", EN: "Click the link and fill in your parents' personal banking details." },
+                    { BM: "Hantar pautan tersebut kepada semua kenalan dalam telefon.", EN: "Forward the suspicious link to all your phone contacts." },
+                    { BM: "Membalas mesej itu dengan memaki hamun pengirim.", EN: "Reply to the spammer with aggressive insults." }
+                ]
+            },
+            {
+                cat: { BM: "Integriti Akademik", EN: "Academic Integrity" },
+                sit: { BM: "Rakan anda meminta anda memberikan jawapan semasa ujian peperiksaan sedang berlangsung.", EN: "A classmate asks you to whisper answers during an ongoing exam." },
+                best: { BM: "Goncang kepala secara perlahan untuk menolak dan fokus pada kertas sendiri.", EN: "Politely shake your head to refuse and focus on your paper." },
+                wrong: [
+                    { BM: "Berikan kertas jawapan anda untuk ditiru olehnya.", EN: "Hand over your answer sheet for them to copy directly." },
+                    { BM: "Jerit nama rakan itu kuat-kuat di dalam dewan peperiksaan.", EN: "Shout their name loudly across the exam hall." },
+                    { BM: "Minta duit bayaran sebelum memberikan jawapan.", EN: "Demand payment money before whispering the answer." }
+                ]
+            },
+            {
+                cat: { BM: "Kesukanan", EN: "Sportsmanship" },
+                sit: { BM: "Pasukan bola sepak kelas anda kalah tipis dalam perlawanan akhir kejohanan sekolah.", EN: "Your class soccer team narrowly loses in the school championship final." },
+                best: { BM: "Ucapkan tahniah kepada pasukan lawan dan puji usaha rakan sepasukan.", EN: "Congratulate the winning team and praise your teammates' hard work." },
+                wrong: [
+                    { BM: "Mencaci pengadil perlawanan dan menyalahkan rakan sepasukan.", EN: "Insult the referee and blame your teammates for losing." },
+                    { BM: "Enggan bersalaman dengan pemain pasukan lawan.", EN: "Refuse to shake hands with the opposing players." },
+                    { BM: "Membakar peralatan sukan sekolah sebagai tanda protes.", EN: "Vandalize sports equipment as a protest." }
+                ]
+            },
+            {
+                cat: { BM: "Pengurusan Stres", EN: "Stress Management" },
+                sit: { BM: "Rakan anda kelihatan terlalu sesak dada dan panik sebelum membuat pembentangan.", EN: "Your friend experiences shortness of breath and panic right before a speech." },
+                best: { BM: "Bawa dia ke tempat lapang, beri air minum dan bantu dia bertenang.", EN: "Take them to an open space, offer water, and help them calm down." },
+                wrong: [
+                    { BM: "Menakutkan lagi keadaannya dengan merakam video panik tersebut.", EN: "Escalate their panic by filming a video of their reaction." },
+                    { BM: "Meninggalkan dia seorang diri tanpa sebarang bantuan.", EN: "Abandon them alone without offering any assistance." },
+                    { BM: "Menjerit di telinganya supaya dia cepat bangun.", EN: "Shout directly into their ear to snap out of it." }
+                ]
+            },
+            {
+                cat: { BM: "Komunikasi Berkesan", EN: "Effective Communication" },
+                sit: { BM: "Berlaku salah faham antara anda dan rakan tentang agihan tugas projek.", EN: "A misunderstanding occurs between you and a friend regarding project division." },
+                best: { BM: "Bincang secara bersemuka dengan tenang untuk menyemak semula senarai tugas.", EN: "Discuss face-to-face calmly to review the task distribution." },
+                wrong: [
+                    { BM: "Mengepos sindiran berdendam di akaun media sosial.", EN: "Post passive-aggressive rants on your social media status." },
+                    { BM: "Melancarkan 'silent treatment' dan enggan bercakap selamanya.", EN: "Give them the cold shoulder and refuse to communicate forever." },
+                    { BM: "Merosakkan bahagian kerja yang telah disiapkan oleh rakan itu.", EN: "Destroy the portion of work already completed by them." }
+                ]
+            },
+            {
+                cat: { BM: "Keselamatan Jalan Raya", EN: "Road Safety" },
+                sit: { BM: "Rakan anda memandu basikal secara berbahaya sambil menunjuk-nunjuk di jalan raya.", EN: "Your friend rides their bicycle dangerously while showing off on the road." },
+                best: { BM: "Nasihati dia supaya menunggang secara cermat demi keselamatan diri.", EN: "Advise them to ride carefully for their own safety." },
+                wrong: [
+                    { BM: "Encik dan sorak supaya dia menunggang lebih laju.", EN: "Cheer and dare them to ride even faster and recklessly." },
+                    { BM: "Lakukan aksi berbahaya yang lebih teruk di hadapannya.", EN: "Perform even dangerous stunts right in front of traffic." },
+                    { BM: "Merakam video stunt itu untuk ditayangkan dalam media sosial.", EN: "Film dangerous stunts to post online for views." }
+                ]
+            },
+            {
+                cat: { BM: "Kepimpinan", EN: "Leadership" },
+                sit: { BM: "Sebagai ketua tingkatan, dua orang rakan sekelas anda mula bertengkar di dalam kelas.", EN: "As class monitor, two of your classmates start arguing heatedly in class." },
+                best: { BM: "Leraikan pertengkaran dengan tenang dan minta mereka berbincang secara elok.", EN: "De-escalate the argument calmly and ask them to talk peacefully." },
+                wrong: [
+                    { BM: "Menggalakkan rakan lain bersorak untuk melihat mereka bergaduh.", EN: "Encourage other classmates to gather and cheer for a fight." },
+                    { BM: "Menyebelahi rakan rapat anda tanpa mendengar punca masalah.", EN: "Side with your close friend without listening to the facts." },
+                    { BM: "Keluar dari kelas dan mengurungi diri di perpustakaan.", EN: "Leave the classroom and hide away in the library." }
+                ]
+            },
+            {
+                cat: { BM: "Penjagaan Kesihatan", EN: "Health Awareness" },
+                sit: { BM: "Rakan anda kelihatan sangat pucat dan menggigil semasa perhimpunan pagi.", EN: "Your friend looks extremely pale and shivers during the morning assembly." },
+                best: { BM: "Iringi dia ke bilik kesihatan/RBT dan maklumkan kepada guru bertugas.", EN: "Accompany them to the sick bay and alert the teacher on duty." },
+                wrong: [
+                    { BM: "Minta dia bertahan dan berdiri tegak sehingga perhimpunan tamat.", EN: "Tell them to endure and stand straight until assembly ends." },
+                    { BM: "Bisik kepadanya bahawa dia sengaja buat-buat sakit.", EN: "Whisper to them that they are just faking illness." },
+                    { BM: "Meninggalkan dia terbaring di atas padang tanpa memberitahu sesiapa.", EN: "Leave them lying on the field without notifying anyone." }
+                ]
+            },
+            {
+                cat: { BM: "Kebersihan & Alam Sekitar", EN: "Hygiene & Environment" },
+                sit: { BM: "Rakan anda melempar bungkus makanan plastik di atas meja kantin selepas makan.", EN: "Your friend tosses a plastic food wrapper onto the canteen table after eating." },
+                best: { BM: "Ingatkan dia secara berhemah untuk membuang sampah ke dalam tong sampah.", EN: "Gently remind them to dispose of the trash in the dustbin." },
+                wrong: [
+                    { BM: "Mengutip sampah itu dan melemparnya ke muka rakan tersebut.", EN: "Throw the wrapper back directly at their face." },
+                    { BM: "Biarkan sampah itu di situ supaya dibersihkan mak cik kantin.", EN: "Leave the trash there for the canteen cleaner to clean." },
+                    { BM: "Sepak sampah tersebut ke bawah meja lain.", EN: "Kick the wrapper under another dining table." }
+                ]
+            },
+            {
+                cat: { BM: "Budi Bahasa", EN: "Good Manners" },
+                sit: { BM: "Pekerja pembersihan sekolah baru selesai mengelap lantai bilik darjah yang kotor.", EN: "The school janitor just finished mopping a dirty classroom floor." },
+                best: { BM: "Ucapkan terima kasih dan minta rakan lain berhati-hati melangkah.", EN: "Say thank you and ask classmates to step carefully." },
+                wrong: [
+                    { BM: "Sengaja memijak lantai basah dengan kasut lumpur.", EN: "Intentionally walk over the wet floor with muddy shoes." },
+                    { BM: "Merungut kerana lantai lambat kering.", EN: "Complain loudly that the floor takes too long to dry." },
+                    { BM: "Menumpahkan cecair minuman berwarna di atas lantai bersih.", EN: "Spill sticky colored drinks onto the freshly mopped floor." }
+                ]
+            },
+            {
+                cat: { BM: "Hak Cipta & Integriti", EN: "Copyright & Integrity" },
+                sit: { BM: "Rakan anda menyalin bulat-bulat karangan dari internet tanpa mengeditnya.", EN: "Your friend copy-pastes an essay entirely from the internet without editing." },
+                best: { BM: "Nasihati dia untuk mengolah semula dengan perkataan sendiri bagi mengelak plagiat.", EN: "Advise them to rephrase in their own words to avoid plagiarism." },
+                wrong: [
+                    { BM: "Minta salinan tugasan itu untuk dihantar sebagai kerja anda juga.", EN: "Ask for a copy of the same essay to submit as yours." },
+                    { BM: "Puji perbuatannya kerana dapat menyiapkan kerja dengan malas.", EN: "Praise their laziness for cheating the assignment." },
+                    { BM: "Cetak 50 salinan dan jual kepada pelajar lain.", EN: "Print 50 copies and sell them to other students." }
+                ]
+            },
+            {
+                cat: { BM: "Keharmonian Kaum", EN: "Racial Harmony" },
+                sit: { BM: "Rakan sekelas berbilang kaum membawa makanan tradisional untuk dikongsi bersama.", EN: "A classmate of a different race brings traditional festive food to share." },
+                best: { BM: "Menerima dengan rasa gembira, menghormati sensitiviti dan mengucapkan terima kasih.", EN: "Accept happily, respect dietary sensitivities, and express gratitude." },
+                wrong: [
+                    { BM: "Membuat muka jijik dan mengejek bau makanan tersebut.", EN: "Make a disgusted face and insult the food's aroma." },
+                    { BM: "Membuang makanan itu ke dalam tong sampah di depan mereka.", EN: "Throw the food straight into the bin in front of them." },
+                    { BM: "Menghalang pelajar lain daripada rasa makanan tersebut.", EN: "Stop other classmates from trying the delicious treat." }
+                ]
+            },
+            {
+                cat: { BM: "Sikap Murah Hati", EN: "Generosity" },
+                sit: { BM: "Rakan sekelas anda terlupa membawa wang saku untuk membeli makanan rehat.", EN: "A classmate forgot to bring pocket money for recess food." },
+                best: { BM: "Kongsi bekal makanan anda atau payungkan makanan ringan untuknya.", EN: "Share your packed meal or buy a simple snack for them." },
+                wrong: [
+                    { BM: "Makan dengan rakus di hadapannya sambil mengejek kesusahannya.", EN: "Eat greedily right in front of them while teasing them." },
+                    { BM: "Mengenakan kadar faedah tinggi jika ingin pinjam wang.", EN: "Charge high interest if they ask to borrow RM1." },
+                    { BM: "Menghalau dia keluar dari kawasan kantin.", EN: "Drive them away from sitting near the canteen area." }
+                ]
+            },
+            {
+                cat: { BM: "Empati", EN: "Empathy" },
+                sit: { BM: "Ahli keluarga rakan rapat anda baru sahaja meninggal dunia.", EN: "Your close friend's family member recently passed away." },
+                best: { BM: "Ucapkan takziah, beri ruang dan hulurkan sokongan emosi.", EN: "Offer sincere condolences, respect their space, and offer emotional support." },
+                wrong: [
+                    { BM: "Bertanya soalan sensitif mengenai punca kematian secara terperinci.", EN: "Pester them with insensitive questions regarding the death." },
+                    { BM: "Mengajak dia bermain permainan video gelak tawa serta-merta.", EN: "Force them to play noisy video games right away." },
+                    { BM: "Mengejek keadaan emosi rakan yang sedang menangis.", EN: "Make fun of their emotional crying in public." }
+                ]
+            },
+            {
+                cat: { BM: "Nilai Kejujuran", EN: "Honesty Values" },
+                sit: { BM: "Guru memberikan markah lebih pada kertas ujian anda secara tidak sengaja.", EN: "Your teacher accidentally awarded extra marks on your test paper." },
+                best: { BM: "Jumpa guru selepas kelas dan maklumkan kesilapan semakan markah tersebut.", EN: "Meet the teacher after class to point out the grading mistake honestly." },
+                wrong: [
+                    { BM: "Pura-pura tidak perasan dan bangga dengan markah palsu.", EN: "Pretend not to notice and brag about the false score." },
+                    { BM: "Ubah markah soalan lain untuk menambah lebih banyak mata.", EN: "Alter other question marks to gain even more free points." },
+                    { BM: "Ejek rakan lain yang mendapat markah lebih rendah.", EN: "Mock classmates who legitimately scored lower." }
+                ]
+            },
+            {
+                cat: { BM: "Persahabatan", EN: "Friendship" },
+                sit: { BM: "Rakan anda kerap gementar dan gagap apabila bercakap di hadapan orang ramai.", EN: "Your friend stutters and gets nervous when speaking in public." },
+                best: { BM: "Dengar dengan sabar tanpa menyampuk dan beri dorongan semangat.", EN: "Listen patiently without interrupting and encourage them kindly." },
+                wrong: [
+                    { BM: "Menyiapkan ayatnya secara terburu-buru dengan ton menyindir.", EN: "Finish their sentences abruptly with a sarcastic tone." },
+                    { BM: "Ejek pertuturannya dan ajak rakan lain mengetawakannya.", EN: "Mimic their stutter and get others to laugh along." },
+                    { BM: "Menyilangkan tangan dan menunjukkan muka bosan.", EN: "Cross your arms and display an annoyed face." }
+                ]
+            },
+            {
+                cat: { BM: "Keselamatan Makmal", EN: "Lab Safety" },
+                sit: { BM: "Rakan lab anda cuba mencampurkan bahan kimia tanpa arahan guru Sains.", EN: "Your lab partner attempts to mix random chemicals without teacher instructions." },
+                best: { BM: "Hentikan perbuatannya serta-merta dan ingatkan tentang bahaya makmal.", EN: "Stop them immediately and remind them of lab safety rules." },
+                wrong: [
+                    { BM: "Galakkan dia mencampurkan lebih banyak larutan berbahaya.", EN: "Encourage them to mix even more volatile liquids." },
+                    { BM: "Lari keluar bilik makmal tanpa memberi amaran.", EN: "Run out of the room quietly without warning anyone." },
+                    { BM: "Mengambil gambar eksperimen haram itu untuk kandungan TikTok.", EN: "Film the unsafe experiment for social media clout." }
+                ]
+            },
+            {
+                cat: { BM: "Sikap Bertanggungjawab", EN: "Responsibility" },
+                sit: { BM: "Anda dikehendaki memulangkan alatan sukan ke stor selepas waktu PJK.", EN: "You are tasked with returning sports equipment to the store after PE class." },
+                best: { BM: "Kumpul semua alatan, susun dengan kemas di stor dan kunci pintu.", EN: "Gather all gear, arrange it neatly in the store, and lock up." },
+                wrong: [
+                    { BM: "Tinggalkan bola dan gelung di tengah padang basah.", EN: "Leave balls and hoops scattered across the wet field." },
+                    { BM: "Sepak bola ke atas bumbung bangunan sekolah.", EN: "Kick the sports balls onto the school building roof." },
+                    { BM: "Bawa pulang bola sekolah untuk kegunaan peribadi.", EN: "Take school sports equipment home for personal use." }
+                ]
+            },
+            {
+                cat: { BM: "Siber & Privasi", EN: "Cyber & Privacy" },
+                sit: { BM: "Rakan anda secara tidak sengaja tertinggal akaun media sosialnya terbuka di komputer perpustakaan.", EN: "Your friend accidentally left their social media account logged in on a public computer." },
+                best: { BM: "Log keluar akaun tersebut dan maklumkan kepada rakan anda.", EN: "Log out of the account immediately and inform your friend." },
+                wrong: [
+                    { BM: "Muat naik status palsu dan pelik untuk mengenakannya.", EN: "Post embarrassing status updates to prank them." },
+                    { BM: "Baca mesej peribadinya dan sebarkan maklumat sulit.", EN: "Read their private chats and leak confidential info." },
+                    { BM: "Tukar kata laluan akaun itu supaya dia tidak boleh akses.", EN: "Change the account password to lock them out." }
+                ]
+            },
+            {
+                cat: { BM: "Etika Majlis", EN: "Assembly Etiquette" },
+                sit: { BM: "Semasa nyanyian lagu rasmi sekolah dalam perhimpunan, rakan sebelah ajak berbual.", EN: "During the official school anthem at assembly, your neighbor tries to chat." },
+                best: { BM: "Fokus menyanyi dengan hormat dan beri isyarat sopan untuk berbual kemudian.", EN: "Focus on singing respectfully and signal politely to chat later." },
+                wrong: [
+                    { BM: "Berbual dengan suara nyaring mengenai perlawanan bola.", EN: "Chat loudly about last night's video games." },
+                    { BM: "Ketawa berdekah-dekah sehingga mengganggu barisan.", EN: "Laugh hysterically and disrupt the entire row." },
+                    { BM: "Duduk di atas lantai dan bermain telefon bimbit.", EN: "Sit on the floor and scroll through your smartphone." }
+                ]
+            },
+            {
+                cat: { BM: "Pengurusan Masa", EN: "Time Management" },
+                sit: { BM: "Tugasan kerja kelompok perlu dihantar esok tetapi ahli lain belum siap bahagian mereka.", EN: "A group assignment is due tomorrow, but members haven't completed their parts." },
+                best: { BM: "Hantar peringatan mesra dalam chat dan tawarkan bantuan menyemak bersama.", EN: "Send a friendly reminder in group chat and offer to review together." },
+                wrong: [
+                    { BM: "Padam nama mereka daripada tugasan tanpa perbincangan.", EN: "Remove their names from the report without notice." },
+                    { BM: "Mengeluarkan kata-kata kesat dan maki-hamun dalam chat.", EN: "Hurl profane insults and curse at them in group chat." },
+                    { BM: "Gagal memproses tugasan dan menyalahkan guru.", EN: "Give up on the assignment entirely and blame the teacher." }
+                ]
+            },
+            {
+                cat: { BM: "Komunikasi Bersopan", EN: "Polite Communication" },
+                sit: { BM: "Rakan anda memakai baju dengan gaya baru tetapi kurang sesuai dengan acara.", EN: "A friend wears a new outfit that looks slightly out of place for an event." },
+                best: { BM: "Jika diminta pandangan, puji usahanya dan beri cadangan bersopan.", EN: "If asked, compliment their confidence and offer subtle advice." },
+                wrong: [
+                    { BM: "Ketawa terbahak-bahak di hadapan tetamu lain.", EN: "Laugh out loud in front of all other attendees." },
+                    { BM: "Tangkap gambar dan jadikan bahan jenaka online.", EN: "Snap photos and post them as internet memes." },
+                    { BM: "Caci gaya bajunya sebagai hodoh dan murah.", EN: "Call their clothes hideous and cheap in public." }
+                ]
+            },
+            {
+                cat: { BM: "Integriti", EN: "Integrity" },
+                sit: { BM: "Anda melihat rakan sekelas mengambil pembaris milik pelajar lain dari bawah meja.", EN: "You spot a classmate taking another student's ruler from under a desk." },
+                best: { BM: "Nasihati rakan itu supaya meletakkannya semula atau pulangkan.", EN: "Advise them to return it or place it back immediately." },
+                wrong: [
+                    { BM: "Minta bahagian pembaris itu untuk dipatahkan bersama.", EN: "Ask to break the ruler in half together." },
+                    { BM: "Bantu dia sorokkan barangan curi itu.", EN: "Help them hide the stolen item in your bag." },
+                    { BM: "Tuduh mangsa kehilangan bahawa dia cuas.", EN: "Blame the victim for being careless." }
+                ]
+            },
+            {
+                cat: { BM: "Hormat Pandangan", EN: "Respecting Views" },
+                sit: { BM: "Rakan sekelas mempunyai pendapat politik/isu semasa berbeza semasa perbahasan.", EN: "A classmate holds a differing opinion on a current issue during debate." },
+                best: { BM: "Dengar hujah mereka dengan fikiran terbuka dan kemukakan fakta tenang.", EN: "Listen with an open mind and present counter-facts calmly." },
+                wrong: [
+                    { BM: "Menjerit dan memotong percakapan mereka secara kasar.", EN: "Shout loudly and cut off their speech aggressively." },
+                    { BM: "Menyerang peribadi dan fizikal rakan tersebut.", EN: "Launch personal attacks and insults on their appearance." },
+                    { BM: "Mogok tidak mahu bercakap dengan sesiapa.", EN: "Go on a strike and refuse to talk to class." }
+                ]
+            },
+            {
+                cat: { BM: "Kasih Sayang Haiwan", EN: "Animal Welfare" },
+                sit: { BM: "Seekor kucing jalanan sesat masuk ke dalam kawasan kantin sekolah.", EN: "A stray cat wanders into the school canteen area looking for food." },
+                best: { BM: "Bawa kucing itu keluar dari kantin dengan lembut tanpa menyakitinya.", EN: "Guide the cat outside gently without hurting or scaring it." },
+                wrong: [
+                    { BM: "Sepak kucing tersebut hingga menjerit.", EN: "Kick the cat forcefully so it screams." },
+                    { BM: "Baling batu atau botol ke arah kucing itu.", EN: "Throw rocks or bottles directly at the cat." },
+                    { BM: "Siram air panas ke atas badan kucing.", EN: "Pour hot water over the poor animal." }
+                ]
+            },
+            {
+                cat: { BM: "Persahabatan Sejati", EN: "True Friendship" },
+                sit: { BM: "Rakan anda mula bergaul dengan kumpulan yang mengajak membolos sekolah.", EN: "Your close friend starts hanging out with a group urging them to ponteng." },
+                best: { BM: "Ingatkan rakan tentang kesan buruk dan ingatkan impian masa depannya.", EN: "Warn your friend about the consequences and encourage good choices." },
+                wrong: [
+                    { BM: "Ikut membolos sekolah bersama mereka.", EN: "Join them in skipping school to fit in." },
+                    { BM: "Beli rokok/vape untuk diberikan kepada kumpulan itu.", EN: "Buy contraband items to supply to the group." },
+                    { BM: "Galakkan mereka melanggar lebih banyak peraturan.", EN: "Encourage them to break even more severe rules." }
+                ]
+            },
+            {
+                cat: { BM: "Etika Perpustakaan", EN: "Library Etiquette" },
+                sit: { BM: "Beberapa pelajar berbual dan ketawa kuat di dalam perpustakaan.", EN: "A group of students talk and laugh loudly inside the quiet library." },
+                best: { BM: "Tegur mereka dengan nada lembut bahawa kawasan ini memerlukan ketenangan.", EN: "Politely remind them that the library requires silence." },
+                wrong: [
+                    { BM: "Jerit lagi kuat untuk menenggelamkan suara mereka.", EN: "Shout even louder to drown out their conversation." },
+                    { BM: "Baling buku tebal ke arah meja mereka.", EN: "Hurl a heavy hardcover book at their table." },
+                    { BM: "Pasang muzik pembesar suara pada tahap maksimum.", EN: "Play speaker music at maximum volume." }
+                ]
+            },
+            {
+                cat: { BM: "Kejujuran Sukan", EN: "Sports Integrity" },
+                sit: { BM: "Bola yang dipukul keluar garisan tetapi pengadil tidak perasan.", EN: "A ball hit went out of bounds, but the referee missed seeing it." },
+                best: { BM: "Akui secara jujur bahawa bola telah keluar dari garisan.", EN: "Honestly admit that the ball landed out of bounds." },
+                wrong: [
+                    { BM: "Sorokkan fakta dan gembira dapat mata haram.", EN: "Hide the fact and cheer for the unfair point." },
+                    { BM: "Marahi pihak lawan jika mereka membuat bantahan.", EN: "Shout aggressively at opponents if they protest." },
+                    { BM: "Baling bola ke muka pengadil perlawanan.", EN: "Throw the ball at the referee's face." }
+                ]
+            },
+            {
+                cat: { BM: "Penjagaan Barangan Awam", EN: "Public Amenities" },
+                sit: { BM: "Anda melihat pelajar meletakkan lukisan contengan vandal pada dinding tandas.", EN: "You see a student drawing graffiti vandalism on the restroom wall." },
+                best: { BM: "Tegur tindakan merosakkan harta awam dan laporkan kepada guru disiplin.", EN: "Advise against damaging public property and inform a discipline teacher." },
+                wrong: [
+                    { BM: "Minta marker pen untuk menambah contengan sendiri.", EN: "Ask for a marker pen to add your own graffiti." },
+                    { BM: "Tulis perkataan kesat pada dinding sekolah.", EN: "Write vulgar profanities on the clean walls." },
+                    { BM: "Ucapkan tahniah atas karya vandalismenya.", EN: "Congratulate them for their vandalizing art." }
+                ]
+            },
+            {
+                cat: { BM: "Empati Pelajaran", EN: "Academic Empathy" },
+                sit: { BM: "Rakan sekelas sukar memahami topik Fizik yang baru diajar oleh guru.", EN: "A classmate struggles to understand a newly taught Physics concept." },
+                best: { BM: "Terangkan konsep itu menggunakan kaedah mudah selepas waktu kelas.", EN: "Explain the concept using simpler terms after class hours." },
+                wrong: [
+                    { BM: "Ejek dia sebagai tidak pandai dan lambat tangkap.", EN: "Call them slow-witted and incapable in public." },
+                    { BM: "Sorokkan nota jawapan supaya dia makin ketinggalan.", EN: "Hide study notes so they fall further behind." },
+                    { BM: "Enggan membantu kerana takut dia dapat markah tinggi.", EN: "Refuse to help out of fear they might score higher." }
+                ]
+            },
+            {
+                cat: { BM: "Budi Bahasa Di Meja", EN: "Table Manners" },
+                sit: { BM: "Rakan makan bersepah dan menumpahkan kuah di meja kantin.", EN: "A friend eats messily and spills gravy across the dining table." },
+                best: { BM: "Hulurkan tisu dan bantu lap tumpahan bersama-sama.", EN: "Hand over tissues and help wipe the spill together." },
+                wrong: [
+                    { BM: "Menjerit jijik dan menolak pinggan rakan.", EN: "Scream in disgust and push their plate off." },
+                    { BM: "Merakam keadaannya dan gelakkan dia.", EN: "Film their messy eating and mock them online." },
+                    { BM: "Tumpahkan air minuman anda ke atasnya.", EN: "Purposely spill your drink over them in return." }
+                ]
+            },
+            {
+                cat: { BM: "Keselamatan Siber", EN: "Cyber Safety" },
+                sit: { BM: "Seseorang mencipta akaun palsu menggunakan gambar dan nama rakan anda.", EN: "Someone creates a fake profile impersonating your friend's photos." },
+                best: { BM: "Laporkan (report) akaun palsu itu dan beri amaran kepada rakan anda.", EN: "Report the fake profile and warn your friend immediately." },
+                wrong: [
+                    { BM: "Ikuti akaun tersebut dan sebarkan fitnahnya.", EN: "Follow the fake account and amplify its lies." },
+                    { BM: "Hantar mesej ugutan kasar kepada akaun itu.", EN: "Send violent threat messages to the account owner." },
+                    { BM: "Pura-pura percaya akaun palsu itu sah.", EN: "Pretend the impersonator account is real." }
+                ]
+            },
+            {
+                cat: { BM: "Penyelesaian Konflik", EN: "Conflict Resolution" },
+                sit: { BM: "Dua orang rakan baik anda tidak bertegur sapa akibat perselisihan faham kecil.", EN: "Two close friends are giving each other the silent treatment over a small quarrel." },
+                best: { BM: "Aturkan perjumpaan mesra untuk bantu mereka berkomunikasi elok.", EN: "Arrange a friendly meetup to help them communicate peacefully." },
+                wrong: [
+                    { BM: "Membawa cerita rekaan untuk memburukkan lagi keadaan.", EN: "Spread fake gossip to make the quarrel worse." },
+                    { BM: "Paksa mereka memilih siapa rakan paling disukai.", EN: "Force them to choose who is their favorite friend." },
+                    { BM: "Putuskan hubungan persahabatan dengan kedua-duanya.", EN: "Cut off friendship with both of them completely." }
+                ]
+            },
+            {
+                cat: { BM: "Etika Berkumpulan", EN: "Group Etiquette" },
+                sit: { BM: "Seorang ahli kumpulan pendiam ingin menyampaikan cadangan projek.", EN: "A quiet group member wants to share an idea for the project." },
+                best: { BM: "Senyapkan ahli lain, beri perhatian penuh dan galakkan dia bercakap.", EN: "Silence others politely, give full attention, and encourage them." },
+                wrong: [
+                    { BM: "Potong cakapnya dan kata idea itu tentu bosan.", EN: "Interrupt them and claim their idea will be boring." },
+                    { BM: "Pandang telefon bimbit semasa dia bercakap.", EN: "Stare at your phone screen while they speak." },
+                    { BM: "Ketawakan nada suaranya yang perlahan.", EN: "Laugh at their quiet speaking voice." }
+                ]
+            },
+            {
+                cat: { BM: "Pematuhan Peraturan", EN: "Rule Compliance" },
+                sit: { BM: "Rakan mengajak anda membawa barangan terlarang ke sekolah.", EN: "A classmate urges you to bring prohibited contraband items to school." },
+                best: { BM: "Tolak ajakan tersebut tegas dan ingatkan tentang peraturan sekolah.", EN: "Refuse firmly and remind them of strict school rules." },
+                wrong: [
+                    { BM: "Setuju membawa barangan tersebut di dalam beg.", EN: "Agree to hide the contraband items in your backpack." },
+                    { BM: "Bantu menjualnya kepada pelajar tingkatan rendah.", EN: "Help sell prohibited items to junior students." },
+                    { BM: "Cabar rakan membawa lebih banyak barang terlarang.", EN: "Challenge them to bring even more illegal items." }
+                ]
+            },
+            {
+                cat: { BM: "Kesedaran Emosi", EN: "Emotional Awareness" },
+                sit: { BM: "Anda melihat rakan sekelas menangis senyap di sudut dewan.", EN: "You notice a classmate crying silently in a corner of the hall." },
+                best: { BM: "Pendekati dengan lembut, hulurkan tisu dan tanya jika dia perlukan teman.", EN: "Approach softly, offer a tissue, and ask if they need company." },
+                wrong: [
+                    { BM: "Mengumpul rakan lain untuk menonton dia menangis.", EN: "Gather a crowd of students to watch them cry." },
+                    { BM: "Menjerit 'Jangan cengeng!' dari jauh.", EN: "Shout 'Stop being a crybaby!' from a distance." },
+                    { BM: "Ambil gambar muka sedihnya tanpa kebenaran.", EN: "Take photos of their tearful face without consent." }
+                ]
+            },
+            {
+                cat: { BM: "Tanggungjawab Pelajar", EN: "Student Responsibility" },
+                sit: { BM: "Jadual bertugas kelas menunjukkan hari ini giliran anda membuang sampah.", EN: "The duty roster shows today is your turn to empty the classroom bins." },
+                best: { BM: "Laksanakan tugas dengan ikhlas sebelum pulang ke rumah.", EN: "Fulfill your duty responsibly before heading home." },
+                wrong: [
+                    { BM: "Lari pulang awal dan suruh rakan lain buat.", EN: "Sneak home early and push the duty onto others." },
+                    { BM: "Sorokkan sampah di bawah meja guru.", EN: "Hide the full trash bags under the teacher's desk." },
+                    { BM: "Sepak tong sampah hingga bersepah di koridor.", EN: "Kick the trash bin over into the hallway." }
+                ]
+            },
+            {
+                cat: { BM: "Penghormatan Kepada Guru", EN: "Respect for Teachers" },
+                sit: { BM: "Guru tersilap menulis ejaan di papan hitam semasa mengajar.", EN: "The teacher accidentally makes a spelling mistake on the whiteboard." },
+                best: { BM: "Angkat tangan dengan sopan dan beritahu pembetulan secara perlahan.", EN: "Raise your hand politely and point out the correction softly." },
+                wrong: [
+                    { BM: "Jerit ketawa dan ejek guru di depan kelas.", EN: "Laugh loudly and mock the teacher in front of class." },
+                    { BM: "Tangkap gambar kesilapan dan viralkan di internet.", EN: "Post a photo of the mistake on social media." },
+                    { BM: "Baling pemadam ke arah papan hitam.", EN: "Throw an eraser at the whiteboard angrily." }
+                ]
+            },
+            {
+                cat: { BM: "Empati Kesihatan", EN: "Health Empathy" },
+                sit: { BM: "Rakan sekelas terlupa membawa ubat asma dan mula batuk teruk.", EN: "A classmate forgot their inhaler and starts coughing severely." },
+                best: { BM: "Bantu dia duduk tenang dan segera dapatkan guru/pegawai bertugas.", EN: "Help them sit upright and immediately fetch a teacher or medical staff." },
+                wrong: [
+                    { BM: "Minta dia berlari pusing padang untuk pulih.", EN: "Tell them to run laps around the field to clear it." },
+                    { BM: "Kurung dia di dalam tandas seorang diri.", EN: "Lock them inside a restroom stall alone." },
+                    { BM: "Kipas mukanya dengan pembaris secara kasar.", EN: "Fan their face aggressively with a ruler." }
+                ]
+            },
+            {
+                cat: { BM: "Sikap Terbuka", EN: "Open-mindedness" },
+                sit: { BM: "Rakan anda mempunyai minat seni unik yang jarang disukai orang lain.", EN: "Your friend is passionate about a unique niche art hobby." },
+                best: { BM: "Hormati minatnya dan dengar dengan seronok apabila dia bercerita.", EN: "Respect their interest and listen supportively when they share." },
+                wrong: [
+                    { BM: "Kecam minatnya sebagai aneh dan membuang masa.", EN: "Bash their hobby as weird and a total waste of time." },
+                    { BM: "Merosakkan bahan seni yang dihasilkannya.", EN: "Intentionally ruin the artwork they produced." },
+                    { BM: "Larang dia bercakap tentang minatnya lagi.", EN: "Forbid them from speaking about their hobby again." }
+                ]
+            },
+            {
+                cat: { BM: "Etika Mesyuarat", EN: "Meeting Etiquette" },
+                sit: { BM: "Telefon bimbit anda berbunyi kuat semasa ceramah motivasi sekolah.", EN: "Your mobile phone rings loudly during a school motivational talk." },
+                best: { BM: "Matikan nada dering dengan pantas dan mohon maaf secara senyap.", EN: "Silence the ringtone quickly and apologize discreetly." },
+                wrong: [
+                    { BM: "Jawab panggilan itu dan bercakap dengan suara nyaring.", EN: "Answer the call and chat loudly in the auditorium." },
+                    { BM: "Campak telefon ke bawah kerusi rakan lain.", EN: "Toss the phone under a classmate's seat to shift blame." },
+                    { BM: "Menari mengikut irama nada dering telefon.", EN: "Dance publicly along to your ringtone tune." }
+                ]
+            },
+            {
+                cat: { BM: "Integriti Kewangan", EN: "Financial Integrity" },
+                sit: { BM: "Sebagai bendahari kelas, anda memegang wang dana kelab yang banyak.", EN: "As class treasurer, you hold a substantial sum of club funds." },
+                best: { BM: "Simpan rekod resit dengan tepat dan jangan guna untuk simpanan peribadi.", EN: "Keep precise receipt records and never use it for personal matters." },
+                wrong: [
+                    { BM: "Guna wang kelas untuk beli makanan peribadi dulu.", EN: "Use class money to buy personal meals first." },
+                    { BM: "Pinjamkan wang kelas kepada rakan untuk berjudi.", EN: "Lend class money to friends for gambling." },
+                    { BM: "Hilangkan buku rekod kewangan secara sengaja.", EN: "Intentionally lose the financial record logbook." }
+                ]
+            },
+            {
+                cat: { BM: "Keselamatan Makmal", EN: "Lab Safety" },
+                sit: { BM: "Tabung uji berkaca pecah di atas lantai semasa amali Kimia.", EN: "A glass test tube breaks on the floor during Chemistry practical." },
+                best: { BM: "Beritahu guru/pembantu makmal segera dan kawal kawasan tersebut.", EN: "Inform the teacher/lab assistant immediately and guard the area." },
+                wrong: [
+                    { BM: "Kutip kaca pecah guna tangan telanjang.", EN: "Pick up sharp glass splinters with bare hands." },
+                    { BM: "Sepak serpihan kaca ke bawah meja rakan.", EN: "Kick glass shards under a classmate's desk." },
+                    { BM: "Sorokkan kejadian itu dan biarkan seseorang terpijak.", EN: "Hide the incident and let someone step on it." }
+                ]
+            },
+            {
+                cat: { BM: "Empati & Sokongan", EN: "Empathy & Support" },
+                sit: { BM: "Rakan sekelas tidak terpilih masuk ke dalam pasukan sukan sekolah.", EN: "A classmate failed to make the cut for the school sports team." },
+                best: { BM: "Puji usahanya dan galakkan dia berlatih lagi untuk pemilihan akan datang.", EN: "Praise their hard work and encourage them for the next tryout." },
+                wrong: [
+                    { BM: "Ejek dia semangak tidak berbakat.", EN: "Taunt them for having zero athletic talent." },
+                    { BM: "Muat naik hantaran sindiran di akaun media sosial.", EN: "Post a sarcastic status poking fun at their failure." },
+                    { BM: "Gunting jersi latihan milik rakan tersebut.", EN: "Damage or ruin their practice sports jersey." }
+                ]
+            },
+            {
+                cat: { BM: "Komunikasi Bebas Buli", EN: "Bully-Free Communication" },
+                sit: { BM: "Rakan anda sering dipanggil dengan gelaran nama ejekan yang tidak disukainya.", EN: "A classmate is constantly called a hurtful nickname they dislike." },
+                best: { BM: "Panggil dia dengan nama sebenar dan minta rakan lain hentikan ejekan.", EN: "Call them by their real name and ask others to stop the nickname." },
+                wrong: [
+                    { BM: "Ikut memanggil nama ejekan itu secara berulang kali.", EN: "Join in repeating the offensive nickname continuously." },
+                    { BM: "Cipta nama ejekan baharu yang lebih teruk.", EN: "Invent a new, even more offensive nickname." },
+                    { BM: "Tulis nama ejekan itu di papan hitam kelas.", EN: "Write the hurtful nickname on the blackboard." }
+                ]
+            },
+            {
+                cat: { BM: "Sikap Menghormati", EN: "Respectful Attitude" },
+                sit: { BM: "Pelajar senior meminta anda menyerahkan tempat duduk di kantin secara paksa.", EN: "A senior student aggressively demands you surrender your canteen seat." },
+                best: { BM: "Bercakap secara tenang, atau dapatkan bantuan pengawas/guru bertugas.", EN: "Stay calm, communicate politely, or seek help from a prefect/teacher." },
+                wrong: [
+                    { BM: "Mulakan perkelahian fizikal dengan menumbuk senior.", EN: "Initiate a physical brawl by punching the senior." },
+                    { BM: "Simbah kuah panas ke muka pelajar senior.", EN: "Splash hot soup into the senior student's face." },
+                    { BM: "Merosakkan harta benda kantin sebagai protes.", EN: "Destroy canteen tables and chairs in protest." }
+                ]
+            },
+            {
+                cat: { BM: "Semangat Bermasyarakat", EN: "Community Spirit" },
+                sit: { BM: "Sekolah menganjurkan program Gotong-Royong membersihkan kawasan padang.", EN: "The school organizes a Cleanliness Drive to tidy the sports field." },
+                best: { BM: "Sertai dengan bersemangat dan bantu membersihkan kawasan bersama.", EN: "Participate enthusiastically and clean up alongside everyone." },
+                wrong: [
+                    { BM: "Sembunyi di dalam tandas sehingga program tamat.", EN: "Hide inside the restroom until the event finishes." },
+                    { BM: "Lempar lagi banyak sampah ke padang.", EN: "Toss even more litter onto the cleaned field." },
+                    { BM: "Pura-pura pengsan untuk elak bekerja.", EN: "Pretend to faint to escape assigned duties." }
+                ]
+            },
+            {
+                cat: { BM: "Kematangan Emosi", EN: "Emotional Maturity" },
+                sit: { BM: "Hasil lukisan seni anda mendapat kritikan membina daripada guru.", EN: "Your art project receives constructive criticism from the teacher." },
+                best: { BM: "Terima teguran dengan baik dan gunakan panduan itu untuk perbaiki lukisan.", EN: "Take feedback positively and use it to improve your work." },
+                wrong: [
+                    { BM: "Koyakkan lukisan itu di hadapan guru.", EN: "Tear up the artwork directly in front of the teacher." },
+                    { BM: "Merajuk dan enggan menghadiri kelas seni lagi.", EN: "Sulkan and refuse to attend future art classes." },
+                    { BM: "Memaki guru di belakang bilik darjah.", EN: "Curse out the teacher behind their back." }
+                ]
+            },
+            {
+                cat: { BM: "Persahabatan & Kepercayaan", EN: "Friendship & Trust" },
+                sit: { BM: "Rakan menceritakan rahsia peribadinya dan minta anda tidak memberitahu sesiapa.", EN: "A friend shares a personal secret and asks you to keep it confidential." },
+                best: { BM: "Amanah menyimpan rahsia tersebut kecuali jika ia membahayakan nyawanya.", EN: "Keep the secret faithfully unless it involves danger to their safety." },
+                wrong: [
+                    { BM: "Sebarkan rahsia itu dalam kumpulan chat sekolah.", EN: "Broadcast the secret across class messaging groups." },
+                    { BM: "Gunakan rahsia itu untuk mengugut rakan anda.", EN: "Use the secret to blackmail your friend for money." },
+                    { BM: "Jadikan rahsia itu bahan jenaka di dewan makan.", EN: "Make the secret a public joke in the dining hall." }
+                ]
+            },
+            {
+                cat: { BM: "Keselamatan Diri", EN: "Personal Safety" },
+                sit: { BM: "Anda dijemput menghadiri perjumpaan malam di kawasan sunyi oleh rakan baru.", EN: "A new acquaintance invites you to a late-night gathering in an isolated area." },
+                best: { BM: "Tolak ajakan tersebut demi keselamatan dan berbincang dengan ibu bapa.", EN: "Decline for safety reasons and discuss it with your parents." },
+                wrong: [
+                    { BM: "Pergi seorang diri tanpa memberitahu sesiapa.", EN: "Go alone in the dark without notifying anyone." },
+                    { BM: "Bawa adik kecil bersama ke tempat sunyi itu.", EN: "Bring your younger sibling along to the dangerous spot." },
+                    { BM: "Matikan telefon bimbit supaya tidak diganggu.", EN: "Turn off your phone so no one can reach you." }
+                ]
+            },
+            {
+                cat: { BM: "Etika Sukan", EN: "Sports Ethics" },
+                sit: { BM: "Semasa larian merentas desa, rakan lawan terjatuh dan terseliuh kaki.", EN: "During a cross-country run, an opposing runner falls and sprains an ankle." },
+                best: { BM: "Berhenti seketika untuk bantu dia atau maklumkan kepada petugas trek.", EN: "Pause to check on them or alert track marshals immediately." },
+                wrong: [
+                    { BM: "Langkah badan rakan yang sakit sambil ketawa.", EN: "Step over their injured body while laughing." },
+                    { BM: "Tolak dia lebih jauh ke dalam semak.", EN: "Push them further into the bushes." },
+                    { BM: "Ejek kelajuan lariannya yang lambat.", EN: "Taunt their slow running speed as you pass." }
+                ]
+            },
+            {
+                cat: { BM: "Pematuhan Masa", EN: "Punctuality" },
+                sit: { BM: "Anda lewat sampai ke mesyuarat kelab kerana bas awam terlepas.", EN: "You arrive late to a club meeting because you missed the public bus." },
+                best: { BM: "Masuk dengan sopan, mohon maaf ringkas dan terus sertai perbincangan.", EN: "Enter quietly, apologize briefly, and catch up with the meeting." },
+                wrong: [
+                    { BM: "Menjerit menyalahkan pemandu bas di dalam bilik.", EN: "Shout complaints about the bus driver inside the room." },
+                    { BM: "Menghempas beg di atas meja untuk menarik perhatian.", EN: "Slam your bag onto the table to attract attention." },
+                    { BM: "Tidur di kerusi belakang tanpa rasa bersalah.", EN: "Sleep in the back row without any regard." }
+                ]
+            },
+            {
+                cat: { BM: "Kebersihan Diri", EN: "Personal Hygiene" },
+                sit: { BM: "Selepas sukan berat, rakan berpeluh teruk tetapi terlupa membawa baju ganti.", EN: "After intense sports, a friend is heavily sweaty but forgot spare clothes." },
+                best: { BM: "Pinjamkan tuala bersih atau baju sukan ganti jika ada.", EN: "Lend a clean towel or spare gym shirt if you have one." },
+                wrong: [
+                    { BM: "Menjerit 'Kamu berbau busuk!' di hadapan ramai.", EN: "Shout 'You stink terrible!' in front of everyone." },
+                    { BM: "Halau dia daripada duduk berdekatan.", EN: "Drive them away from sitting anywhere nearby." },
+                    { BM: "Sembur penyembur cecair ke mukanya secara kasar.", EN: "Spray harsh air freshener directly at their face." }
+                ]
+            },
+            {
+                cat: { BM: "Kesedaran Bencana", EN: "Emergency Awareness" },
+                sit: { BM: "Loceng amaran kebakaran sekolah berbunyi secara tiba-tiba.", EN: "The school fire alarm sounds unexpectedly." },
+                best: { BM: "Bergerak pantas dan tenang mengikut laluan kecemasan ke padang.", EN: "Move quickly and calmly along evacuation routes to the field." },
+                wrong: [
+                    { BM: "Jerit panik dan tolak-menolak di tangga.", EN: "Scream in panic and shove classmates down stairs." },
+                    { BM: "Patah balik ke kelas untuk ambil barangan mainan.", EN: "Run back into the building to grab toys." },
+                    { BM: "Sorok di bawah meja dan enggan keluar.", EN: "Hide under a desk and refuse to evacuate." }
+                ]
+            },
+            {
+                cat: { BM: "Kepimpinan Rakan", EN: "Peer Leadership" },
+                sit: { BM: "Rakan sekelas sering ketagihan bermain permainan video hingga lewat malam.", EN: "A classmate is addicted to late-night gaming and misses morning classes." },
+                best: { BM: "Bincang mesra tentang keutamaan pelajaran dan jadual rehat sihat.", EN: "Talk warmly about balancing priorities and healthy sleep routines." },
+                wrong: [
+                    { BM: "Ajak dia bermain hingga subuh bersama.", EN: "Encourage them to play online games until sunrise." },
+                    { BM: "Ejek keadaannya yang sering mengantuk di kelas.", EN: "Mock their tired face in class daily." },
+                    { BM: "Belikan lagi banyak akaun permainan video.", EN: "Buy them more gaming accounts to feed addiction." }
+                ]
+            },
+            {
+                cat: { BM: "Sikap Hormat Harta", EN: "Respecting Property" },
+                sit: { BM: "Rakan anda ingin meminjam laptop anda untuk menyiapkan tugasan.", EN: "A classmate asks to borrow your laptop to complete an urgent task." },
+                best: { BM: "Pinjamkan dengan peringatan cermat menjaga barangan digital.", EN: "Lend it with a gentle reminder to care for the device." },
+                wrong: [
+                    { BM: "Mengenakan bayaran sewa RM50 sejam.", EN: "Demand a ridiculous rental fee of RM50 per hour." },
+                    { BM: "Campak laptop tersebut ke arahnya.", EN: "Toss the laptop carelessly toward them." },
+                    { BM: "Padam semua fail tugasan miliknya.", EN: "Delete all their project files permanently." }
+                ]
+            },
+            {
+                cat: { BM: "Komunikasi Maya", EN: "Online Etiquette" },
+                sit: { BM: "Seseorang membuat komen negatif pada hasil karya lukisan anda di media sosial.", EN: "Someone posts a harsh critique on your online art page." },
+                best: { BM: "Balas dengan matang, ambil sudut positif atau abaikan provokasi.", EN: "Reply maturely, extract useful feedback, or ignore toxic bait." },
+                wrong: [
+                    { BM: "Balas dengan carutan dan ugutan fizikal.", EN: "Respond with profanities and physical threats." },
+                    { BM: "Dapatkan alamat rumah pembuli untuk serang.", EN: "Track down their home address to launch an attack." },
+                    { BM: "Padam seluruh akaun media sosial secara emosi.", EN: "Delete your entire online portfolio in anger." }
+                ]
+            },
+            {
+                cat: { BM: "Perhatian & Keprihatinan", EN: "Attentiveness" },
+                sit: { BM: "Rakan sekelas tidak mempunyai cermin mata kerana pecah semalam.", EN: "A classmate is without glasses because they broke yesterday." },
+                best: { BM: "Tawarkan tempat duduk hadapan dan bantu bacakan tulisan di papan hitam.", EN: "Offer a front seat and help read out notes from the board." },
+                wrong: [
+                    { BM: "Alihkan dia ke barisan paling belakang kelas.", EN: "Move them to the backmost row intentionally." },
+                    { BM: "Tunjuk pelbagai isyarat tangan untuk mengelirukannya.", EN: "Make confusing hand gestures to trick them." },
+                    { BM: "Tulis nota saiz mikro yang tidak terbaca.", EN: "Write microscopic notes they can't read." }
+                ]
+            },
+            {
+                cat: { BM: "Kejujuran Tugasan", EN: "Assignment Honesty" },
+                sit: { BM: "Anda terlupa menyiapkan kerja rumah Matematik yang perlu dihantar hari ini.", EN: "You forgot to complete Math homework due today." },
+                best: { BM: "Mengaku kepada guru secara jujur dan janji menghantar esok pagi.", EN: "Admit to the teacher honestly and commit to submitting tomorrow." },
+                wrong: [
+                    { BM: "Curi buku latihan rakan dan tukar nama di muka depan.", EN: "Steal a classmate's book and erase their name." },
+                    { BM: "Tipu guru bahawa buku anda dimakan anjing.", EN: "Lie to the teacher that your dog ate the book." },
+                    { BM: "Marahi guru kerana memberi terlalu banyak kerja.", EN: "Shout at the teacher for giving too much work." }
+                ]
+            },
+            {
+                cat: { BM: "Pengurusan Diri", EN: "Self-Regulation" },
+                sit: { BM: "Rakan anda sengaja menyenggol bahu anda semasa berjalan di koridor.", EN: "A student intentionally bumps your shoulder while walking past." },
+                best: { BM: "Bertenang, elakkan pergaduhan dan bertanya sebabnya secara matang.", EN: "Stay calm, avoid escalation, and ask why maturely." },
+                wrong: [
+                    { BM: "Tumbuk muka pelajar itu serta-merta.", EN: "Throw an immediate punch at their face." },
+                    { BM: "Panggil ahli kumpulan untuk belasah pelajar itu.", EN: "Call a gang of friends to ambush them." },
+                    { BM: "Sumpah seranah dengan perkataan kesat.", EN: "Scream a stream of vulgarities back." }
+                ]
+            },
+            {
+                cat: { BM: "Kerjasama Sukan", EN: "Sports Teamwork" },
+                sit: { BM: "Pemain pertahanan pasukan bola anda melakukan kesilapan gol sendiri.", EN: "Your team's defender accidentally scores an own goal." },
+                best: { BM: "Tepuk bahunya, beri semangat dan katakan perlawanan belum tamat.", EN: "Pat their shoulder, encourage them, and remind them the game continues." },
+                wrong: [
+                    { BM: "Tengking dia di hadapan semua penonton.", EN: "Scream insults at them in front of spectators." },
+                    { BM: "Minta jurulatih mengeluarkan dia serta-merta.", EN: "Demand the coach kick them off the team." },
+                    { BM: "Duduk di padang dan enggan meneruskan permainan.", EN: "Sit on the grass and refuse to play on." }
+                ]
+            },
+            {
+                cat: { BM: "Keharmonian Sekolah", EN: "School Harmony" },
+                sit: { BM: "Kumpulan pelajar berbeza budaya sedang mengadakan persembahan tarian.", EN: "Students from a different culture perform a traditional cultural dance." },
+                best: { BM: "Beri tepukan gemuruh dan hargai keindahan kepelbagaian budaya.", EN: "Applaud warmly and appreciate the beauty of cultural diversity." },
+                wrong: [
+                    { BM: "Ejek pergerakan tarian mereka sebagai aneh.", EN: "Mock their traditional dance moves as weird." },
+                    { BM: "Baling botol air kosong ke atas pentas.", EN: "Throw empty water bottles onto the stage." },
+                    { BM: "Tutup telinga dan buat muka muak.", EN: "Cover your ears and display a disgusted posture." }
+                ]
+            },
+            {
+                cat: { BM: "Kebersihan Kantin", EN: "Canteen Sanitation" },
+                sit: { BM: "Anda melihat sisa makanan bertaburan di stesen mengumpul pinggan.", EN: "You see leftover food spilled across the dish collection rack." },
+                best: { BM: "Susun pinggan mangkuk anda dengan cermat tanpa menambah semakan.", EN: "Stack your dishes neatly without adding to the mess." },
+                wrong: [
+                    { BM: "Campak pinggan hingga pecah berderai.", EN: "Throw your plate forcefully so it shatters." },
+                    { BM: "Sapu sisa makanan ke atas lantai kantin.", EN: "Sweep leftovers onto the canteen floor." },
+                    { BM: "Tinggalkan pinggan di atas meja makan biasa.", EN: "Leave your dirty plates on dining tables." }
+                ]
+            },
+            {
+                cat: { BM: "Kebaikan Hati", EN: "Kindness" },
+                sit: { BM: "Pengawal keselamatan sekolah berdiri mengawal lalu lintas di bawah hujan gerimis.", EN: "The school security guard manages traffic under a light drizzle." },
+                best: { BM: "Ucapkan terima kasih dan serahkan payung/minuman jika ada.", EN: "Express gratitude and offer a drink or umbrella if available." },
+                wrong: [
+                    { BM: "Ejek pekerjaannya yang basah luyut.", EN: "Mock their job for standing in the rain." },
+                    { BM: "Hon basikal/moped dengan bising sengaja.", EN: "Honk loudly to annoy them intentionally." },
+                    { BM: "Minta dia membawakan beg anda di dalam hujan.", EN: "Demand they carry your backpack in the rain." }
+                ]
+            },
+            {
+                cat: { BM: "Hormat Guru Kasih", EN: "Respect & Care" },
+                sit: { BM: "Guru kelas anda bakal bersara selepas 30 tahun berkhidmat.", EN: "Your homeroom teacher is retiring after 30 years of teaching." },
+                best: { BM: "Sediakan kad ucapan penghargaan bersama rakan sekelas.", EN: "Prepare a heartfelt thank-you card together with classmates." },
+                wrong: [
+                    { BM: "Sorak gembira kerana guru bersara.", EN: "Cheer disrespectfully that the teacher is leaving." },
+                    { BM: "Conteng kereta guru sebagai hadiah kenangan.", EN: "Vandalize the teacher's car as a parting prank." },
+                    { BM: "Abaikan majlis perpisahan secara biadab.", EN: "Boycott the farewell assembly rudely." }
+                ]
+            },
+            {
+                cat: { BM: "Empati Pelajar Baru", EN: "Welcoming Attitude" },
+                sit: { BM: "Pelajar pertukaran antarabangsa tidak mahir berbahasa tempatan.", EN: "An international exchange student struggles with the local language." },
+                best: { BM: "Bercakap secara perlahan, gunakan bahasa mudah dan bantu dia belajar.", EN: "Speak clearly, use simple language, and help them learn." },
+                wrong: [
+                    { BM: "Mengajar perkataan kesat dan buruk kepadanya.", EN: "Intentionally teach them vulgar curse words." },
+                    { BM: "Ketawakan sebutan bahasanya yang pelik.", EN: "Laugh hysterically at their accent." },
+                    { BM: "Pulaukan dia daripada semua aktiviti kelas.", EN: "Exclude them from all classroom activities." }
+                ]
+            },
+            {
+                cat: { BM: "Integriti Diri", EN: "Self-Integrity" },
+                sit: { BM: "Tiada siapa melihat anda apabila anda terlanggar pasu bunga sekolah.", EN: "No one is looking when you accidentally knock over a school flower pot." },
+                best: { BM: "Kutip semula pasu/tanah dan maklumkan kepada pejabat sekolah.", EN: "Clean up the soil/pot and report the accident to the office." },
+                wrong: [
+                    { BM: "Lari pantas dan tuduh pelajar lain.", EN: "Run away quickly and shift the blame to a junior." },
+                    { BM: "Pecahkan lebih banyak pasu bunga berdekatan.", EN: "Smash more nearby pots to cover tracks." },
+                    { BM: "Tendang tanah pasu ke dalam longkang.", EN: "Kick the spilled soil into the drain." }
+                ]
+            },
+            {
+                cat: { BM: "Komunikasi Bersikap Jelas", EN: "Clear Communication" },
+                sit: { BM: "Anda tidak faham tugasan Sejarah yang diberikan oleh guru.", EN: "You don't understand the History project instructions given." },
+                best: { BM: "Bertanya kepada guru selepas kelas atau minta penjelasan rakan.", EN: "Ask the teacher after class or seek clarification from peers." },
+                wrong: [
+                    { BM: "Hantar kertas kosong tanpa mencuba langsung.", EN: "Submit a blank paper without making any effort." },
+                    { BM: "Marahi soalan itu sebagai tidak masuk akal.", EN: "Rant online that the question makes zero sense." },
+                    { BM: "Koyakkan kertas soalan Sejarah tersebut.", EN: "Tear up the project instruction sheet." }
+                ]
+            },
+            {
+                cat: { BM: "Sikap Saling Membantu", EN: "Mutual Help" },
+                sit: { BM: "Rakan sekelas terjatuh dari tangga dan basikalnya rosak.", EN: "A classmate falls off their bicycle and the chain pops off." },
+                best: { BM: "Bantu dia bangun dan tolong pasangkan semula rantai basikal.", EN: "Help them up and assist in fixing the bicycle chain." },
+                wrong: [
+                    { BM: "Lumba basikal melintasi dia sambil ketawa.", EN: "Speed past them while laughing at the crash." },
+                    { BM: "Sepak tayar basikalnya hingga bengkok.", EN: "Kick their bike wheel until it bends." },
+                    { BM: "Tangkap gambar kemalangan untuk dibagikan.", EN: "Snap photos of the accident to spread around." }
+                ]
+            },
+            {
+                cat: { BM: "Sikap Kepimpinan Remaja", EN: "Youth Leadership" },
+                sit: { BM: "Kumpulan anda perlu memilih ketua projek untuk pertandingan Sains.", EN: "Your group needs to elect a project leader for a Science fair." },
+                best: { BM: "Pilih calon berwibawa, bertanggungjawab dan bersedia mendengar.", EN: "Vote for a responsible, capable candidate willing to listen." },
+                wrong: [
+                    { BM: "Pilih rakan yang paling selalu ponteng kerja.", EN: "Pick the friend who slacks off the most." },
+                    { BM: "Gadai jawatan ketua dengan menawarkannya pada penipu.", EN: "Bribe group members to force your own total control." },
+                    { BM: "Enggan terima sesiapa sebagai ketua kumpulan.", EN: "Refuse to accept any leader elected by the majority." }
+                ]
+            }
+        ];
+
+        // UI Text Dictionary for Malay & English
+        const UI_TEXT = {
+            BM: {
+                subtitle: "Simulasi Kepimpinan & Empati Sosial",
+                title: "RESPONS TERBAIK",
+                desc: "Baca setiap situasi sosial dan pilih respons paling bijak & berempati! Jawapan betul +2s, jawapan salah -2s!",
+                rule1Title: "Masa Asal 60 Saat",
+                rule1Desc: "Pilih respons terbaik untuk seberapa banyak situasi sebelum pemasa tamat.",
+                rule2Title: "Bonus Masa +2s / Penalti -2s",
+                rule2Desc: "Jawapan betul menambah +2s! Jawapan salah menolak -2s.",
+                rule3Title: "100 Situasi Unik Sekolah Menengah",
+                rule3Desc: "Merangkumi persahabatan, etika, buli siber & kerjasama tanpa ulangan!",
+                highScore: "Rekod Tertinggi:",
+                database: "Pangkalan:",
+                dbCount: `${SCENARIO_DATABASE.length} Situasi`,
+                btnStart: "MULAKAN SIMULASI",
+                lblScore: "Markah",
+                lblStreak: "Rentetan",
+                lblTime: "Masa Baki",
+                lblSituationTag: "📌 Situasi:",
+                evalTitle: "Simulasi Selesai",
+                evalSubtitle: "Masa pemasa respons telah tamat!",
+                lblResScore: "Markah Akhir",
+                lblResRecord: "Rekod Terbaik",
+                lblResAccuracy: "Ketepatan",
+                lblResStreak: "Rentetan Maks",
+                btnReview: "🔍 Semakan Respons",
+                btnRestart: "MAIN SEMULA",
+                reviewTitle: "Semakan Respons Situasi",
+                btnClose: "Tutup"
+            },
+            EN: {
+                subtitle: "Social Leadership & Empathy Simulator",
+                title: "BEST RESPONSE",
+                desc: "Read each social scenario and select the most empathetic & logical response! Correct answer adds +2s, wrong answer deducts -2s!",
+                rule1Title: "60-Second Initial Timer",
+                rule1Desc: "Select the best response for as many scenarios before time runs out.",
+                rule2Title: "+2s Time Bonus / -2s Penalty",
+                rule2Desc: "Correct response adds +2s! Wrong response deducts -2s.",
+                rule3Title: "100 Unique Secondary School Scenarios",
+                rule3Desc: "Covers friendship, ethics, cyberbullying & teamwork without repetition!",
+                highScore: "High Score:",
+                database: "Database:",
+                dbCount: `${SCENARIO_DATABASE.length} Scenarios`,
+                btnStart: "START SIMULATION",
+                lblScore: "Score",
+                lblStreak: "Streak",
+                lblTime: "Time Left",
+                lblSituationTag: "📌 Situation:",
+                evalTitle: "Simulation Complete",
+                evalSubtitle: "Response timer has expired!",
+                lblResScore: "Final Score",
+                lblResRecord: "Best Record",
+                lblResAccuracy: "Accuracy",
+                lblResStreak: "Max Streak",
+                btnReview: "🔍 Review Responses",
+                btnRestart: "PLAY AGAIN",
+                reviewTitle: "Scenario Response Review",
+                btnClose: "Close"
+            }
+        };
+
+        const INITIAL_TIME = 60;
+        let currentLang = 'BM'; // Default language set to Malay
+        let shuffledQuestions = [];
+        let currentQIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let maxStreak = 0;
+        let totalAnswered = 0;
+        let totalCorrect = 0;
+        let timeLeft = INITIAL_TIME;
+        let timerInterval = null;
+        let isAnsweringBlocked = false;
+        let sessionHistory = [];
+
+        let highScore = parseInt(localStorage.getItem('best_response_highscore') || '0', 10);
+
+        // DOM Element Cache
+        const screenStart = document.getElementById('screen-start');
+        const screenGame = document.getElementById('screen-game');
+        const screenGameover = document.getElementById('screen-gameover');
+        const modalReview = document.getElementById('modal-review');
+
+        const btnStart = document.getElementById('btn-start');
+        const btnRestart = document.getElementById('btn-restart');
+        const btnReview = document.getElementById('btn-review');
+        const btnCloseReview = document.getElementById('btn-close-review');
+        const btnCloseReviewBottom = document.getElementById('btn-close-review-bottom');
+        const btnSoundToggle = document.getElementById('btn-sound-toggle');
+        const btnLangToggle = document.getElementById('btn-lang-toggle');
+
+        const langIndicator = document.getElementById('lang-indicator');
+        const iconSoundOn = document.getElementById('icon-sound-on');
+        const iconSoundOff = document.getElementById('icon-sound-off');
+
+        const gameScoreEl = document.getElementById('game-score');
+        const gameStreakEl = document.getElementById('game-streak');
+        const gameTimerEl = document.getElementById('game-timer');
+        const timerBarEl = document.getElementById('timer-bar');
+        const floatContainer = document.getElementById('time-float-container');
+
+        const questionCategoryEl = document.getElementById('question-category');
+        const questionCounterEl = document.getElementById('question-counter');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+
+        const startHighScoreEl = document.getElementById('start-high-score');
+        const resScoreEl = document.getElementById('res-score');
+        const resHighscoreEl = document.getElementById('res-highscore');
+        const resAccuracyEl = document.getElementById('res-accuracy');
+        const resStreakEl = document.getElementById('res-streak');
+        const evalGradeBadge = document.getElementById('eval-grade-badge');
+        const newHighScoreBanner = document.getElementById('new-high-score-banner');
+        const reviewListContainer = document.getElementById('review-list-container');
+
+        function updateLanguageUI() {
+            const t = UI_TEXT[currentLang];
+            langIndicator.innerText = currentLang === 'BM' ? '🌐 BM' : '🌐 EN';
+
+            document.getElementById('ui-subtitle').innerText = t.subtitle;
+            document.getElementById('ui-title').innerText = t.title;
+            document.getElementById('ui-desc').innerText = t.desc;
+
+            document.getElementById('rule-1-title').innerText = t.rule1Title;
+            document.getElementById('rule-1-desc').innerText = t.rule1Desc;
+            document.getElementById('rule-2-title').innerText = t.rule2Title;
+            document.getElementById('rule-2-desc').innerText = t.rule2Desc;
+            document.getElementById('rule-3-title').innerText = t.rule3Title;
+            document.getElementById('rule-3-desc').innerText = t.rule3Desc;
+
+            document.getElementById('lbl-high-score').innerText = t.highScore;
+            document.getElementById('lbl-total-q').innerText = t.database;
+            document.getElementById('db-count').innerText = t.dbCount;
+            btnStart.innerText = t.btnStart;
+
+            document.getElementById('lbl-score').innerText = t.lblScore;
+            document.getElementById('lbl-streak').innerText = t.lblStreak;
+            document.getElementById('lbl-time').innerText = t.lblTime;
+            document.getElementById('lbl-situation-tag').innerText = t.lblSituationTag;
+
+            document.getElementById('ui-eval-title').innerText = t.evalTitle;
+            document.getElementById('ui-eval-subtitle').innerText = t.evalSubtitle;
+
+            document.getElementById('lbl-res-score').innerText = t.lblResScore;
+            document.getElementById('lbl-res-record').innerText = t.lblResRecord;
+            document.getElementById('lbl-res-accuracy').innerText = t.lblResAccuracy;
+            document.getElementById('lbl-res-streak').innerText = t.lblResStreak;
+
+            btnReview.innerHTML = `🔍 ${t.btnReview} (<span id="missed-count">${sessionHistory.length}</span>)`;
+            btnRestart.innerText = t.btnRestart;
+            document.getElementById('ui-review-title').innerText = t.reviewTitle;
+            btnCloseReviewBottom.innerText = t.btnClose;
+
+            if (!screenGame.classList.contains('hidden')) {
+                renderCurrentQuestion(true);
+            }
+        }
+
+        btnLangToggle.addEventListener('click', () => {
+            currentLang = currentLang === 'BM' ? 'EN' : 'BM';
+            updateLanguageUI();
+        });
+
+        btnSoundToggle.addEventListener('click', () => {
+            const enabled = audio.toggleSound();
+            if (enabled) {
+                iconSoundOn.classList.remove('hidden');
+                iconSoundOff.classList.add('hidden');
+            } else {
+                iconSoundOn.classList.add('hidden');
+                iconSoundOff.classList.remove('hidden');
+            }
+        });
+
+        // Fisher-Yates Array Shuffle
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Dynamically bundle and shuffle 1 best response + 3 wrong responses
+        function prepareQuestion(qObj, existingState = null) {
+            if (existingState) {
+                return existingState;
+            }
+
+            const bestObj = qObj.best;
+            const wrongObjs = qObj.wrong;
+
+            const choices = [
+                { obj: bestObj, isBest: true },
+                { obj: wrongObjs[0], isBest: false },
+                { obj: wrongObjs[1], isBest: false },
+                { obj: wrongObjs[2], isBest: false }
+            ];
+
+            const shuffledChoices = shuffleArray(choices);
+            const correctIndex = shuffledChoices.findIndex(item => item.isBest);
+
+            return {
+                qObj: qObj,
+                choices: shuffledChoices,
+                correctIndex: correctIndex
+            };
+        }
+
+        let currentPreparedQ = null;
+
+        function renderCurrentQuestion(preserveChoices = false) {
+            if (currentQIndex >= shuffledQuestions.length) {
+                shuffledQuestions = shuffleArray(SCENARIO_DATABASE);
+                currentQIndex = 0;
+            }
+
+            const rawQ = shuffledQuestions[currentQIndex];
+            if (!preserveChoices || !currentPreparedQ || currentPreparedQ.qObj !== rawQ) {
+                currentPreparedQ = prepareQuestion(rawQ);
+            }
+
+            questionCategoryEl.innerText = `${currentPreparedQ.qObj.cat[currentLang]}`;
+            questionCounterEl.innerText = `${currentLang === 'BM' ? 'Situasi' : 'Scenario'} #${totalAnswered + 1}`;
+            questionTextEl.innerText = `"${currentPreparedQ.qObj.sit[currentLang]}"`;
+
+            optionsContainer.innerHTML = '';
+            isAnsweringBlocked = false;
+
+            currentPreparedQ.choices.forEach((choiceItem, index) => {
+                const optText = choiceItem.obj[currentLang];
+                const btn = document.createElement('button');
+                btn.className = 'glass-btn w-full p-3.5 sm:p-4 rounded-2xl text-left text-xs sm:text-sm font-semibold text-slate-200 transition-all duration-200 flex items-center justify-between group';
+                btn.innerHTML = `
+                    <span class="flex-1 pr-3 leading-relaxed">${optText}</span>
+                    <span class="w-6 h-6 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] text-slate-400 group-hover:border-rose-500 group-hover:text-rose-300 transition-colors shrink-0">${String.fromCharCode(65 + index)}</span>
+                `;
+                btn.addEventListener('click', () => handleAnswer(index, btn));
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // Floating time modifier badge animation (+2s / -2s)
+        function triggerTimeDeltaAnimation(delta) {
+            const el = document.createElement('div');
+            const isPositive = delta > 0;
+            el.className = `${isPositive ? 'text-emerald-400' : 'text-rose-500'} font-black text-sm sm:text-base animate-float-up shadow-sm`;
+            el.innerText = isPositive ? `+${delta}s` : `${delta}s`;
+            floatContainer.appendChild(el);
+
+            setTimeout(() => {
+                if (el.parentNode) {
+                    el.parentNode.removeChild(el);
+                }
+            }, 800);
+        }
+
+        function handleAnswer(selectedIndex, clickedBtn) {
+            if (isAnsweringBlocked) return;
+            isAnsweringBlocked = true;
+
+            const isCorrect = (selectedIndex === currentPreparedQ.correctIndex);
+            totalAnswered++;
+
+            const allButtons = optionsContainer.querySelectorAll('button');
+
+            if (isCorrect) {
+                totalCorrect++;
+                streak++;
+                if (streak > maxStreak) maxStreak = streak;
+
+                // Add +2 seconds bonus
+                timeLeft += 2;
+                triggerTimeDeltaAnimation(2);
+
+                const earnedPoints = 100 + (streak * 25);
+                score += earnedPoints;
+
+                clickedBtn.classList.add('btn-correct');
+                audio.playCorrect();
+
+                sessionHistory.push({
+                    sit: currentPreparedQ.qObj.sit,
+                    category: currentPreparedQ.qObj.cat,
+                    userAns: currentPreparedQ.choices[selectedIndex].obj,
+                    correctAns: currentPreparedQ.choices[currentPreparedQ.correctIndex].obj,
+                    isCorrect: true
+                });
+            } else {
+                streak = 0;
+                
+                // Deduct -2 seconds penalty
+                timeLeft = Math.max(0, timeLeft - 2);
+                triggerTimeDeltaAnimation(-2);
+
+                clickedBtn.classList.add('btn-wrong');
+                if (allButtons[currentPreparedQ.correctIndex]) {
+                    allButtons[currentPreparedQ.correctIndex].classList.add('btn-correct');
+                }
+                audio.playWrong();
+
+                sessionHistory.push({
+                    sit: currentPreparedQ.qObj.sit,
+                    category: currentPreparedQ.qObj.cat,
+                    userAns: currentPreparedQ.choices[selectedIndex].obj,
+                    correctAns: currentPreparedQ.choices[currentPreparedQ.correctIndex].obj,
+                    isCorrect: false
+                });
+
+                const main = document.getElementById('main-container');
+                main.classList.remove('animate-shake');
+                void main.offsetWidth;
+                main.classList.add('animate-shake');
+            }
+
+            gameScoreEl.innerText = score;
+            gameStreakEl.innerText = `🔥 ${streak}`;
+            gameTimerEl.innerText = `${timeLeft}s`;
+
+            if (timeLeft <= 0) {
+                endGame();
+                return;
+            }
+
+            setTimeout(() => {
+                currentQIndex++;
+                renderCurrentQuestion();
+            }, 200);
+        }
+
+        function startTimer() {
+            timeLeft = INITIAL_TIME;
+            gameTimerEl.innerText = `${timeLeft}s`;
+            timerBarEl.style.width = '100%';
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft < 0) timeLeft = 0;
+
+                gameTimerEl.innerText = `${timeLeft}s`;
+
+                const pct = Math.min(100, (timeLeft / INITIAL_TIME) * 100);
+                timerBarEl.style.width = `${pct}%`;
+
+                if (timeLeft <= 10) {
+                    timerBarEl.className = 'h-full bg-rose-500 rounded-full transition-all duration-200 ease-linear w-full';
+                    gameTimerEl.className = 'text-2xl font-black text-rose-400 animate-pulse';
+                } else if (timeLeft <= 25) {
+                    timerBarEl.className = 'h-full bg-amber-400 rounded-full transition-all duration-200 ease-linear w-full';
+                    gameTimerEl.className = 'text-2xl font-black text-amber-400';
+                } else {
+                    timerBarEl.className = 'h-full bg-rose-400 rounded-full transition-all duration-200 ease-linear w-full';
+                    gameTimerEl.className = 'text-2xl font-black text-rose-400';
+                }
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            score = 0;
+            streak = 0;
+            maxStreak = 0;
+            totalAnswered = 0;
+            totalCorrect = 0;
+            currentQIndex = 0;
+            sessionHistory = [];
+
+            shuffledQuestions = shuffleArray(SCENARIO_DATABASE);
+
+            gameScoreEl.innerText = '0';
+            gameStreakEl.innerText = '🔥 0';
+
+            screenStart.classList.add('hidden');
+            screenGameover.classList.add('hidden');
+            screenGame.classList.remove('hidden');
+            screenGame.classList.add('flex');
+
+            renderCurrentQuestion();
+            startTimer();
+        }
+
+        function getEvaluationBadge(finalScore, accuracy) {
+            if (finalScore >= 3500 && accuracy >= 80) {
+                return { title: currentLang === 'BM' ? "PEMIMPIN BEREMPATI TINGGI" : "HIGH-EMPATHY LEADER", color: "bg-rose-500/20 text-rose-300 border-rose-500/40" };
+            } else if (finalScore >= 2200) {
+                return { title: currentLang === 'BM' ? "PERUNDING SOSIAL BIJAK" : "WISE SOCIAL CONSULTANT", color: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40" };
+            } else if (finalScore >= 1200) {
+                return { title: currentLang === 'BM' ? "RAKAN PRIHATIN SENIOR" : "SENIOR CARING FRIEND", color: "bg-purple-500/20 text-purple-300 border-purple-500/40" };
+            } else {
+                return { title: currentLang === 'BM' ? "AHLI PASUKAN HARMONI" : "HARMONY TEAM MEMBER", color: "bg-amber-500/20 text-amber-300 border-amber-500/40" };
+            }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            audio.playFinish();
+
+            let isNewHigh = false;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('best_response_highscore', highScore.toString());
+                isNewHigh = true;
+            }
+
+            const accuracyVal = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+            const evalGrade = getEvaluationBadge(score, accuracyVal);
+
+            resScoreEl.innerText = score;
+            resHighscoreEl.innerText = highScore;
+            resAccuracyEl.innerText = `${accuracyVal}%`;
+            resStreakEl.innerText = `🔥 ${maxStreak}`;
+            document.getElementById('missed-count').innerText = sessionHistory.length;
+
+            evalGradeBadge.innerText = evalGrade.title;
+            evalGradeBadge.className = `px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border ${evalGrade.color}`;
+
+            if (isNewHigh && score > 0) {
+                newHighScoreBanner.classList.remove('hidden');
+                newHighScoreBanner.classList.add('flex');
+            } else {
+                newHighScoreBanner.classList.add('hidden');
+                newHighScoreBanner.classList.remove('flex');
+            }
+
+            screenGame.classList.add('hidden');
+            screenGame.classList.remove('flex');
+            screenGameover.classList.remove('hidden');
+            screenGameover.classList.add('flex');
+        }
+
+        function populateReviewModal() {
+            reviewListContainer.innerHTML = '';
+            if (sessionHistory.length === 0) {
+                reviewListContainer.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        ${currentLang === 'BM' ? 'Tiada situasi dijawab.' : 'No scenarios answered.'}
+                    </div>
+                `;
+                return;
+            }
+
+            sessionHistory.forEach((item) => {
+                const div = document.createElement('div');
+                div.className = `p-3.5 rounded-xl border ${item.isCorrect ? 'bg-slate-900/60 border-emerald-900/50' : 'bg-slate-900/90 border-rose-900/50'} space-y-1.5`;
+                div.innerHTML = `
+                    <div class="flex items-center justify-between text-[10px] font-bold uppercase">
+                        <span class="text-rose-400">${item.category[currentLang]}</span>
+                        <span class="${item.isCorrect ? 'text-emerald-400' : 'text-rose-400'}">${item.isCorrect ? '✅ BETUL / CORRECT' : '❌ SALAH / WRONG'}</span>
+                    </div>
+                    <p class="text-slate-200 font-semibold text-xs sm:text-sm">"${item.sit[currentLang]}"</p>
+                    <div class="text-xs pt-1 space-y-0.5">
+                        <div class="${item.isCorrect ? 'text-emerald-400' : 'text-rose-400'}">👉 ${currentLang === 'BM' ? 'Pilihan Anda:' : 'Your Response:'} ${item.userAns[currentLang]}</div>
+                        ${!item.isCorrect ? `<div class="text-emerald-400">✅ ${currentLang === 'BM' ? 'Respons Terbaik:' : 'Best Response:'} ${item.correctAns[currentLang]}</div>` : ''}
+                    </div>
+                `;
+                reviewListContainer.appendChild(div);
+            });
+        }
+
+        // Review Modal Event Listeners
+        btnReview.addEventListener('click', () => {
+            populateReviewModal();
+            modalReview.classList.remove('hidden');
+            modalReview.classList.add('flex');
+        });
+
+        const closeModal = () => {
+            modalReview.classList.add('hidden');
+            modalReview.classList.remove('flex');
+        };
+
+        btnCloseReview.addEventListener('click', closeModal);
+        btnCloseReviewBottom.addEventListener('click', closeModal);
+
+        btnStart.addEventListener('click', () => {
+            audio.init();
+            startGame();
+        });
+
+        btnRestart.addEventListener('click', () => {
+            audio.init();
+            startGame();
+        });
+
+        // Initialize high score and UI language text
+        startHighScoreEl.innerText = highScore;
+        updateLanguageUI();
+    </script>
+</body>
+</html>
