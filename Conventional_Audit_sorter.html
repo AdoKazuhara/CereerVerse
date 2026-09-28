@@ -171,8 +171,8 @@
                 <div class="flex items-center gap-3">
                     <span class="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-lg">⚡</span>
                     <div>
-                        <strong id="rule-2-title" class="text-white block">Bonus Masa +2s / Penalti -2s</strong>
-                        <span id="rule-2-desc" class="text-slate-400 text-xs">Keputusan betul menambah +2s! Keputusan salah menolak -2s.</span>
+                        <strong id="rule-2-title" class="text-white block">Bonus Masa +2s / Penalti Meningkat (-2s, -3s...)</strong>
+                        <span id="rule-2-desc" class="text-slate-400 text-xs">Jawapan betul +2s! Jawapan salah berturut-turut menolak masa secara bertingkat (-2s, -3s, -4s...).</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -484,11 +484,11 @@
             BM: {
                 subtitle: "Cabaran Penyortiran & Pengauditan",
                 title: "AUDIT MANUAL",
-                desc: "Periksa rekod kewangan secara teliti! Keputusan betul menambah +2s, keputusan salah menolak -2s!",
+                desc: "Periksa rekod kewangan secara teliti! Keputusan betul menambah +2s, manakala penalti ralat berturut-turut meningkat secara dinamik!",
                 rule1Title: "Masa Asal 60 Saat",
                 rule1Desc: "Semak seberapa banyak rekod kewangan sebelum masa tamat.",
-                rule2Title: "Bonus Masa +2s / Penalti -2s",
-                rule2Desc: "Keputusan betul menambah +2s! Keputusan salah menolak -2s.",
+                rule2Title: "Bonus Masa +2s / Penalti Meningkat (-2s, -3s...)",
+                rule2Desc: "Keputusan betul menambah +2s! Kesilapan berturut-turut meningkatkan penalti (-2s, -3s, -4s...). Resets balik ke -2s apabila mendapat jawapan betul.",
                 rule3Title: "Pemeriksaan Manual Sepenuhnya",
                 rule3Desc: "Tiada label automatik. Semak digit ID dan imbangan Debit/Kredit secara manual.",
                 highScore: "Rekod Tertinggi:",
@@ -514,11 +514,11 @@
             EN: {
                 subtitle: "Manual Sorting & Audit Challenge",
                 title: "MANUAL AUDIT",
-                desc: "Audit financial records thoroughly! Correct action adds +2s, wrong action deducts -2s!",
+                desc: "Audit financial records thoroughly! Correct action adds +2s, while consecutive wrong actions escalate time penalty!",
                 rule1Title: "60-Second Initial Timer",
                 rule1Desc: "Process as many financial records as possible before time runs out.",
-                rule2Title: "+2s Time Bonus / -2s Penalty",
-                rule2Desc: "Correct action adds +2s! Mistakes deduct -2s immediately.",
+                rule2Title: "+2s Time Bonus / Escalating Penalty (-2s, -3s...)",
+                rule2Desc: "Correct action adds +2s! Consecutive errors increase penalty (-2s, -3s, -4s...). Resets back to -2s on any correct answer.",
                 rule3Title: "Fully Manual Inspection",
                 rule3Desc: "No automatic helper tags! Compare ID digits and Debit/Credit balances manually.",
                 highScore: "High Score:",
@@ -554,6 +554,7 @@
         let isAnsweringBlocked = false;
         let sessionHistory = [];
         let currentRecord = null;
+        let wrongPenalty = 2; // Starts at -2s for wrong answer, escalates with consecutive wrong answers
 
         let highScore = parseInt(localStorage.getItem('manual_audit_highscore') || '0', 10);
 
@@ -749,6 +750,9 @@
                 streak++;
                 if (streak > maxStreak) maxStreak = streak;
 
+                // Reset escalating penalty on correct answer back to -2s
+                wrongPenalty = 2;
+
                 // +2 Seconds Bonus Rule for correct choice
                 timeLeft += 2;
                 triggerTimeDeltaAnimation(2);
@@ -766,9 +770,12 @@
             } else {
                 streak = 0;
 
-                // -2 Seconds Penalty Rule for wrong choice
-                timeLeft = Math.max(0, timeLeft - 2);
-                triggerTimeDeltaAnimation(-2);
+                // Escalating penalty calculation (-2s, -3s, -4s, -5s, etc.)
+                const currentDeduction = wrongPenalty;
+                wrongPenalty++; // Increase penalty for next consecutive mistake
+
+                timeLeft = Math.max(0, timeLeft - currentDeduction);
+                triggerTimeDeltaAnimation(-currentDeduction);
 
                 audio.playWrong();
 
@@ -803,6 +810,7 @@
 
         function startTimer() {
             timeLeft = INITIAL_TIME;
+            wrongPenalty = 2; // Reset wrong answer penalty counter to 2
             gameTimerEl.innerText = `${timeLeft}s`;
             timerBarEl.style.width = '100%';
 
@@ -839,6 +847,7 @@
             maxStreak = 0;
             totalAnswered = 0;
             totalCorrect = 0;
+            wrongPenalty = 2;
             sessionHistory = [];
 
             gameScoreEl.innerText = '0';
