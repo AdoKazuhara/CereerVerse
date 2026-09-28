@@ -953,13 +953,26 @@ document.querySelectorAll('.overview-btn').forEach(btn=>btn.addEventListener('cl
   {title:'Forensic Accountant', description:'Inspect a 3D ledger and uncover the accounting discrepancy.', file:'Game - Forensic Accountant — 3D Ledger Inspector. from conventional.html'}
  ]
 }; */
-const minigameData = { R: [], I: [], A: [], S: [], E: [], C: [] };
-
-// Keep the first release focused: only the Realistic Island has a playable game.
-minigameData.R = [
- {title:'Airfield Fix-It', description:'Inspect and repair a training plane before takeoff. Follow the manual, spot the faults, and make the aircraft safe.', file:'Airfield_Fix-It_2D_1790237711126.html'}
-];
-['I','A','S','E','C'].forEach(type=>{ minigameData[type]=[]; });
+const minigameData = {
+ R: [
+  {title:'Airfield Fix-It', description:'Inspect and repair a training plane before takeoff. Follow the manual, spot the faults, and make the aircraft safe.', file:'Airfield_Fix-It_2D_1790237711126.html'}
+ ],
+ I: [
+  {title:'Mystery Lab', description:'Answer science questions, follow the evidence, and keep your investigation streak alive.', file:'Investigative_makmal_misteri_mystery_lab.html'}
+ ],
+ A: [
+  {title:'Color Match Blitz', description:'Match the target colour quickly and build a creative score before the timer ends.', file:'Artistic_color_match_blitz.html'}
+ ],
+ S: [
+  {title:'Choose the Best Response', description:'Read each situation and choose the response that shows care, empathy, and good communication.', file:'Social_choose_the_best_response_pilihan_respons_terbaik.html'}
+ ],
+ E: [
+  {title:'Customer Match', description:'Match customers with the right offers and practise quick business decisions.', file:'Enterprising_customer_match_padanan_pelanggan.html'}
+ ],
+ C: [
+  {title:'Audit Sorter', description:'Sort records by status and spot the items that need an accurate audit check.', file:'Conventional_Audit_sorter.html'}
+ ]
+};
 
 const minigameModal=document.getElementById('minigame-modal');
 const minigameList=document.getElementById('minigame-list');
@@ -976,8 +989,11 @@ function showMinigameList(){
 }
 
 function launchMinigame(game){
- // Playable games open as full pages instead of being squeezed into the modal iframe.
- window.location.assign(encodeURI(game.file));
+ minigameList.style.display='none';
+ minigameFrameWrap.classList.add('open');
+ minigameCurrentTitle.textContent=game.title;
+ minigameFrame.title=game.title+' mini game';
+ minigameFrame.src=encodeURI(game.file);
 }
 
 function openMinigames(type){
@@ -1244,4 +1260,3 @@ languageScreen.style.display = 'flex';
 
 </body>
 </html>
-
